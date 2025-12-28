@@ -1,0 +1,90 @@
+{
+    "_id": "69143c1205726f0e39abee25",
+    "title": "Men’s Slim Fit Stretchable Denim Jeans",
+    "slug": "mens-slim-fit-stretchable-denim-jeans",
+    "sku": "SKU-DENIM-001",
+    "description": "These slim fit jeans blend premium cotton with stretch fibres for all-day comfort. Reinforced seams and enzyme wash deliver a lived-in feel straight out of the box. Ideal for everyday retail and uniform programmes.",
+    "shortDescription": "Durable indigo denim engineered for daily wear with stretch comfort.",
+    "images": [
+        {
+            "url": "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/463907/item/goods_69_463907_3x4.jpg?width=494",
+            "alt": "Back view highlighting pockets and stitching",
+            "order": 1
+        },
+        {
+            "url": "http://localhost:5000/uploads//products/Untitled-design-(45)-1762944154003.png",
+            "order": 2
+        }
+    ],
+    "attributes": {
+        "Fabric composition": "98% cotton / 2% elastane",
+        "Wash": "Enzyme stone wash",
+        "Fit": "Slim taper",
+        "Sizes": "28-38 (even sizes)"
+    },
+    "stock": 120,
+    "minOrderQty": 12,
+    "weightKg": 1.2,
+    "vendor": {
+        "_id": "69142cd707db4603387e54f2",
+        "name": "ADNAN AHMAD",
+        "email": "adnan@gmail.com"
+    },
+    "vendorSnapshot": {
+        "vendorId": "69142cd707db4603387e54f2",
+        "vendorName": "ADNAN AHMAD",
+        "vendorEmail": "adnan@gmail.com"
+    },
+    "price": 1299,
+    "pricingTiers": [
+        {
+            "minQty": 24,
+            "pricePerUnit": 1249
+        },
+        {
+            "minQty": 60,
+            "pricePerUnit": 1189
+        }
+    ],
+    "isActive": true,
+    "approvedByAdmin": true,
+    "totalSold": 0,
+    "tags": [
+        "denim",
+        "jeans",
+        "apparel"
+    ],
+    "tagsText": "denim jeans apparel",
+    "meta": {
+        "hsn": "620342",
+        "care": [
+            "Machine wash cold",
+            "Do not bleach",
+            "Tumble dry low"
+        ],
+        "packaging": "Individually polybagged with size stickers"
+    },
+    "createdAt": "2025-11-12T07:49:38.303Z",
+    "updatedAt": "2025-11-12T10:42:38.665Z",
+    "__v": 1,
+    "category": {
+        "_id": "691433cc6d041998911dc383",
+        "name": "Cloths",
+        "slug": "cloths",
+        "parent": null,
+        "isActive": true,
+        "createdAt": "2025-11-12T07:14:20.829Z",
+        "updatedAt": "2025-11-12T07:14:20.829Z",
+        "__v": 0
+    },
+    "subcategory": {
+        "_id": "691433dc6d041998911dc389",
+        "name": "Jeans",
+        "slug": "jeans",
+        "parent": "691433cc6d041998911dc383",
+        "isActive": true,
+        "createdAt": "2025-11-12T07:14:36.030Z",
+        "updatedAt": "2025-11-12T07:14:36.030Z",
+        "__v": 0
+    }
+}
