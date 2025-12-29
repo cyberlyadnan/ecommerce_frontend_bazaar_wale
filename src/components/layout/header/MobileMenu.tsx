@@ -52,87 +52,69 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
   };
 
   const toggleSidebar = () => {
-    console.log('Toggle Sidebar called');
-    setIsOpen((prev) => {
-      const newValue = !prev;
-      console.log('Sidebar toggle:', newValue);
-      return newValue;
-    });
+    setIsOpen((prev) => !prev);
     setShowSearch(false);
   };
 
-  // Prevent rendering sidebar until mounted (SSR safety)
+  const toggleSearch = () => {
+    console.log('toggleSearch');
+    setShowSearch((prev) => !prev);
+    setIsOpen(false);
+  };
+
+  // Render icons immediately (no SSR blocking)
+  const icons = (
+    <div className="flex items-center gap-2">
+      {/* Search Icon */}
+      <button
+        type="button"
+        className="p-2 z-10 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 active:bg-primary/10 transition-all duration-300 touch-manipulation"
+        onClick={toggleSearch}
+        aria-label="Toggle search"
+      >
+        <Search size={22} />
+      </button>
+
+      {/* Cart Icon */}
+      <Link
+        href="/cart"
+        className="relative p-2 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 transition-all duration-300 touch-manipulation"
+        aria-label="Shopping cart"
+      >
+        <ShoppingCart size={22} />
+        {itemCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 shadow-lg border-2 border-white">
+            {itemCount > 99 ? '99+' : itemCount}
+          </span>
+        )}
+      </Link>
+
+      {/* Menu Icon */}
+      <button
+        type="button"
+        className="p-2 z-10 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 active:bg-primary/10 transition-all duration-300 touch-manipulation"
+        onClick={toggleSidebar}
+        aria-label="Toggle menu"
+        aria-expanded={isOpen}
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+    </div>
+  );
+
+  // Only render portals after mount
   if (!mounted) {
-    return (
-      <div className="flex items-center gap-2">
-        <button className="p-2 rounded-lg text-foreground/70" aria-label="Search">
-          <Search size={22} />
-        </button>
-        <Link href="/cart" className="relative p-2 rounded-lg text-foreground/70" aria-label="Cart">
-          <ShoppingCart size={22} />
-        </Link>
-        <button className="p-2 rounded-lg text-foreground/70" aria-label="Menu">
-          <Menu size={24} />
-        </button>
-      </div>
-    );
+    return icons;
   }
 
   return (
     <>
-      {/* Right Side Icons - Mobile Only */}
-      <div className="flex items-center gap-2">
-        {/* Search Icon */}
-        <button
-          type="button"
-          className="p-2 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 transition-all duration-300"
-          onClick={() => {
-            setShowSearch(!showSearch);
-            setIsOpen(false);
-          }}
-          aria-label="Toggle search"
-        >
-          <Search size={22} />
-        </button>
-
-        {/* Cart Icon */}
-        <Link
-          href="/cart"
-          className="relative p-2 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 transition-all duration-300"
-          aria-label="Shopping cart"
-        >
-          <ShoppingCart size={22} />
-          {itemCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 shadow-lg border-2 border-white">
-              {itemCount > 99 ? '99+' : itemCount}
-            </span>
-          )}
-        </Link>
-
-        {/* Menu Icon */}
-        <button
-          type="button"
-          className="p-2 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 active:bg-primary/10 transition-all duration-300"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleSidebar();
-          }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleSidebar();
-          }}
-          aria-label="Toggle menu"
-          aria-expanded={isOpen}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+      {icons}
 
       {/* Mobile Search Bar - Toggleable */}
       {showSearch &&
-        mounted &&
+        typeof window !== 'undefined' &&
+        document?.body &&
         createPortal(
           <div
             className="fixed top-20 left-0 right-0 z-[10000] md:hidden border-b border-border/50 bg-surface/95 backdrop-blur-sm py-3 px-4 shadow-lg"
@@ -161,11 +143,8 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                 {/* Close Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowSearch(false);
-                    setSearchQuery('');
-                  }}
-                  className="absolute right-2 p-2 text-muted hover:text-foreground transition-colors"
+                  onClick={toggleSearch}
+                  className="absolute right-2 p-2 text-muted hover:text-foreground transition-colors touch-manipulation"
                   aria-label="Close search"
                 >
                   <X size={16} />
@@ -177,14 +156,16 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
         )}
 
       {/* Sidebar Menu */}
-      {isOpen && mounted &&
+      {isOpen &&
         typeof window !== 'undefined' &&
+        document?.body &&
         createPortal(
           <div className="fixed inset-0 z-[10000] md:hidden" style={{ pointerEvents: 'auto' }}>
             {/* Overlay */}
             <div
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
               onClick={toggleSidebar}
+              onTouchEnd={toggleSidebar}
               style={{ animation: 'fadeIn 0.2s ease-in-out' }}
               aria-hidden="true"
             />
@@ -192,10 +173,9 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
             {/* Sidebar Panel - Opens from Right */}
             <div
               className="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-surface/95 backdrop-blur-xl overflow-y-auto shadow-2xl border-l border-border/50"
-              style={{ 
-                animation: 'slideInFromRight 0.3s ease-in-out'
-              }}
+              style={{ animation: 'slideInFromRight 0.3s ease-in-out' }}
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
             >
               <nav className="p-6">
                 {/* Close Button */}
@@ -203,7 +183,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                   <button
                     type="button"
                     onClick={toggleSidebar}
-                    className="p-2 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                    className="p-2 rounded-lg text-foreground/70 hover:text-primary hover:bg-primary/5 active:bg-primary/10 transition-all duration-300 touch-manipulation"
                     aria-label="Close menu"
                   >
                     <X size={24} />
@@ -224,7 +204,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                     <li key={link.href}>
                       <Link
                         href={link.href}
-                        className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg font-semibold transition-all duration-200 group"
+                        className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg font-semibold transition-all duration-200 group touch-manipulation"
                         onClick={toggleSidebar}
                       >
                         <span>{link.label}</span>
@@ -241,7 +221,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                     <li className="mt-2">
                       <Link
                         href="/auth/register/vendor"
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg"
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg touch-manipulation"
                         onClick={toggleSidebar}
                       >
                         <Sparkles className="w-4 h-4" />
@@ -256,7 +236,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                       <li className="mt-4 pt-4 border-t border-border/50">
                         <Link
                           href="/orders"
-                          className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg font-semibold transition-all duration-200 group"
+                          className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg font-semibold transition-all duration-200 group touch-manipulation"
                           onClick={toggleSidebar}
                         >
                           <span>My Orders</span>
@@ -269,7 +249,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                       <li>
                         <Link
                           href="/profile"
-                          className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg font-semibold transition-all duration-200 group"
+                          className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg font-semibold transition-all duration-200 group touch-manipulation"
                           onClick={toggleSidebar}
                         >
                           <span>Profile</span>
@@ -285,7 +265,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                       <li className="mt-4 pt-4 border-t border-border/50">
                         <Link
                           href="/auth/login"
-                          className="flex items-center justify-center px-4 py-3 text-primary border-2 border-primary hover:bg-primary/10 rounded-lg font-semibold transition-all duration-300"
+                          className="flex items-center justify-center px-4 py-3 text-primary border-2 border-primary hover:bg-primary/10 rounded-lg font-semibold transition-all duration-300 touch-manipulation"
                           onClick={toggleSidebar}
                         >
                           Login
@@ -294,7 +274,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                       <li>
                         <Link
                           href="/auth/register"
-                          className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg"
+                          className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg touch-manipulation"
                           onClick={toggleSidebar}
                         >
                           Sign Up
