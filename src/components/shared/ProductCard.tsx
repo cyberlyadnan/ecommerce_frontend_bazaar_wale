@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart, Package, Star, StarHalf, Minus, Plus } from 'lucide-react';
 import type { ProductDto } from '@/services/catalogApi';
-import { formatCurrency } from '@/utils/currency';
+import { formatCurrency, resolveProductImage } from '@/utils/currency';
 import { FavoriteButton } from './FavoriteButton';
 import { useAppSelector } from '@/store/redux/store';
 import { addToCartApi } from '@/services/cartApi';
@@ -112,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <Link href={`/products/${product.slug}`} className="block">
           <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted/40 to-muted/20">
             <Image
-              src={product.images?.[0]?.url || FALLBACK_IMAGE}
+              src={resolveProductImage(product.images?.[0]?.url)}
               alt={product.images?.[0]?.alt || product.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-110"

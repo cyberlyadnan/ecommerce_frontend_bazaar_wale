@@ -9,7 +9,7 @@ import { fetchPublicProducts, type ProductDto } from '@/services/catalogApi';
 import ProductCard from '@/components/shared/ProductCard';
 import { AddToCartButton } from '@/components/shared/AddToCartButton';
 import { FavoriteButton } from '@/components/shared/FavoriteButton';
-import { formatCurrency } from '@/utils/currency';
+import { formatCurrency, resolveProductImage } from '@/utils/currency';
 import { Loader2 } from 'lucide-react';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'rating' | 'name';
@@ -492,7 +492,7 @@ export default function ProductsPage() {
                               <div className="relative w-full lg:w-48 h-64 lg:h-48 rounded-lg overflow-hidden bg-muted/30 group">
                                 {product.images?.[0]?.url ? (
                                   <Image
-                                    src={product.images[0].url}
+                                    src={resolveProductImage(product.images[0].url)}
                                     alt={product.images[0].alt || product.title}
                                     fill
                                     className="object-cover group-hover:scale-105 transition-transform duration-300"

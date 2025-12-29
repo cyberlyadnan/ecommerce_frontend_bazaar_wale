@@ -194,6 +194,7 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
       setUploadingImageIndex(index);
       const response = await uploadMedia(file, accessToken, { folder: 'products' });
       const imageUrl = response.file.url;
+      console.log('imageUrl', imageUrl);
       setForm((prev) => {
         const next = [...prev.images];
         next[index] = { ...next[index], url: imageUrl, order: next[index].order || String(index) };

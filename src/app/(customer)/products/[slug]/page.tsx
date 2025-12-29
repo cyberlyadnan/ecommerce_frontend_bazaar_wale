@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 import { getProductBySlug } from '@/services/serverProducts';
-import { formatCurrency } from '@/utils/currency';
+import { formatCurrency, resolveProductImage } from '@/utils/currency';
 import Link from 'next/link';
 import { ProductActions } from '@/components/pages/product/ProductActions';
 import { ReviewSection } from '@/components/pages/product/ReviewSection';
@@ -151,7 +151,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <div className="relative bg-surface rounded-lg overflow-hidden aspect-square">
               {primaryImage ? (
                 <Image
-                  src={primaryImage.url}
+                  src={resolveProductImage(primaryImage.url)}
                   alt={primaryImage.alt || product.title}
                   fill
                   className="object-cover"
@@ -192,7 +192,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                     }`}
                   >
                     <Image
-                      src={img.url}
+                      src={resolveProductImage(img.url)}
                       alt={img.alt || product.title}
                       width={80}
                       height={80}

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { CategoryDto, CategoryTreeNode } from '@/services/catalogApi';
 import { CategoriesClient } from './CategoriesClient';
+import { getCategories } from '@/services/serverCategories';
 
 export const metadata: Metadata = {
   title: 'Shop by Category | Ecommerce B2B',
@@ -17,49 +18,32 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-// Server-side fetch function
-async function fetchCategoriesServer(): Promise<{
-  categories: CategoryDto[];
-  tree: CategoryTreeNode[];
-}> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-  const url = `${apiBaseUrl}/api/catalog/categories`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 300 }, // Cache for 5 minutes
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch categories: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch categories:', error);
-    throw error;
-  }
-}
-
 export default async function CategoriesPage() {
   let categories: CategoryDto[] = [];
   let tree: CategoryTreeNode[] = [];
   let error = '';
 
   try {
-    const response = await fetchCategoriesServer();
+    const response = await getCategories();
     categories = response.categories;
     tree = response.tree;
+    
+    // Debug logging
+    console.log('[CategoriesPage] Received data:', {
+      categoriesCount: categories.length,
+      treeCount: tree.length,
+      sampleCategory: categories[0],
+      activeCategories: categories.filter(cat => cat.isActive).length,
+      topLevelCategories: categories.filter(cat => !cat.parent).length,
+    });
   } catch (err) {
     console.error('Failed to fetch categories', err);
     error = 'Unable to load categories right now.';
   }
 
   const topLevelCategories = categories.filter((cat) => !cat.parent && cat.isActive);
+  
+  console.log('[CategoriesPage] Filtered topLevelCategories:', topLevelCategories.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-surface/30">
@@ -108,6 +92,29 @@ export default async function CategoriesPage() {
             </div>
             <h2 className="text-2xl font-bold text-foreground">Unable to Load Categories</h2>
             <p className="text-foreground/70">{error}</p>
+            <p className="text-sm text-foreground/50 mt-2">
+              Please check that the backend server is running and the API endpoint is accessible.
+            </p>
+          </div>
+        </section>
+      ) : topLevelCategories.length === 0 ? (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+              <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">No Categories Available</h2>
+            <p className="text-foreground/70">
+              {categories.length === 0
+                ? 'No categories found. Please check the backend database.'
+                : `Found ${categories.length} category/categories, but none are active top-level categories.`}
+            </p>
+            {categories.length > 0 && (
+              <p className="text-sm text-foreground/50 mt-2">
+                Active categories: {categories.filter(c => c.isActive).length} | 
+                Top-level categories: {categories.filter(c => !c.parent).length}
+              </p>
+            )}
           </div>
         </section>
       ) : (

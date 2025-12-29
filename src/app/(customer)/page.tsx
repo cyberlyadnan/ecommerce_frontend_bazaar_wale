@@ -20,52 +20,8 @@ import HeroSection from '@/components/pages/home/HeroSection';
 import ProductShowcase from '@/components/pages/home/ProductShowcase';
 import BecomeVendorSection from '@/components/pages/home/BecomeVendorSection';
 import { getFeaturedProducts } from '@/services/serverProducts';
+import { getCategories } from '@/services/serverCategories';
 import { CategoriesShowcase } from '@/components/pages/home/CategoriesShowcase';
-
-// Server-side fetch function for categories
-async function fetchCategoriesServer(): Promise<{
-  categories: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    image?: string;
-    parent: string | null;
-    isActive: boolean;
-  }>;
-  tree: Array<{
-    _id: string;
-    name: string;
-    slug: string;
-    description?: string;
-    image?: string;
-    parent?: string | null;
-    isActive: boolean;
-    children: any[];
-  }>;
-}> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-  const url = `${apiBaseUrl}/api/catalog/categories`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 300 }, // Cache for 5 minutes
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch categories: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to fetch categories:', error);
-    return { categories: [], tree: [] };
-  }
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -80,7 +36,7 @@ export default async function CustomerHomePage() {
   }
   
   try {
-    const categoriesData = await fetchCategoriesServer();
+    const categoriesData = await getCategories();
     topLevelCategories = categoriesData.categories
       .filter((cat) => !cat.parent && cat.isActive)
       .slice(0, 8); // Show top 8 categories

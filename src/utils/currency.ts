@@ -17,7 +17,9 @@ export const resolveProductImage = (url?: string | null) => {
   if (!url || !url.trim()) {
     return FALLBACK_IMAGE;
   }
-  return url;
+  // Fix double slashes in URL (e.g., /uploads//products/... -> /uploads/products/...)
+  const normalizedUrl = url.replace(/([^:]\/)\/+/g, '$1');
+  return normalizedUrl;
 };
 
 
