@@ -66,7 +66,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const { slug } = await params;
 
   const productResult = await getProductBySlug(slug);
-  console.log(productResult);
+  // console.log(productResult);
 
   if (!productResult) {
     return (
