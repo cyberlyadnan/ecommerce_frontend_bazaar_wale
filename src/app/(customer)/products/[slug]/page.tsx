@@ -5,8 +5,6 @@ import {
   Package,
   Truck,
   Shield,
-  ChevronLeft,
-  ChevronRight,
   Check,
   ArrowLeft,
   PackageX,
@@ -19,6 +17,7 @@ import { ProductActions } from '@/components/pages/product/ProductActions';
 import { ReviewSection } from '@/components/pages/product/ReviewSection';
 import { ProductReviewStats } from '@/components/pages/product/ProductReviewStats';
 import { RecordProductView } from '@/components/pages/product/RecordProductView';
+import { ProductImageGallery } from '@/components/pages/product/ProductImageGallery';
 
 interface ProductDetailPageProps {
   params: { slug: string };
@@ -147,62 +146,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="relative bg-surface rounded-lg overflow-hidden aspect-square">
-              {primaryImage ? (
-                <Image
-                  src={resolveProductImage(primaryImage.url)}
-                  alt={primaryImage.alt || product.title}
-                  fill
-                  className="object-cover"
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  priority
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-foreground/40 text-sm">
-                  No product image
-                </div>
-              )}
-
-              {images.length > 1 && (
-                <>
-                  <button
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-surface/80 backdrop-blur-sm p-2 rounded-full hover:bg-surface transition"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-foreground" />
-                  </button>
-                  <button
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-surface/80 backdrop-blur-sm p-2 rounded-full hover:bg-surface transition"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="w-5 h-5 text-foreground" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {images.length > 1 && (
-              <div className="flex gap-2">
-                {images.map((img, idx) => (
-                  <div
-                    key={img.url + idx}
-                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
-                      idx === 0 ? 'border-primary' : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <Image
-                      src={resolveProductImage(img.url)}
-                      alt={img.alt || product.title}
-                      width={80}
-                      height={80}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery images={images} productTitle={product.title} />
 
           {/* Product Info */}
           <div className="space-y-6">

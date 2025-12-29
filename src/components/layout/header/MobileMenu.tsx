@@ -52,6 +52,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
   };
 
   const toggleSidebar = () => {
+    console.log('Toggle Sidebar called');
     setIsOpen((prev) => {
       const newValue = !prev;
       console.log('Sidebar toggle:', newValue);
