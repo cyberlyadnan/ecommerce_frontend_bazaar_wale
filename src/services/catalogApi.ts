@@ -170,6 +170,12 @@ export const updateCategoryApi = (
     accessToken,
   });
 
+export const deleteCategoryApi = (categoryId: string, accessToken?: string | null) =>
+  apiClient<{ message: string }>(adminApiEndpoints.categoryById(categoryId), {
+    method: 'DELETE',
+    accessToken,
+  });
+
 export const fetchProducts = (
   accessToken?: string | null,
   options?: FetchProductsOptions,

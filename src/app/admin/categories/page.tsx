@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Plus, RefreshCcw, ChevronRight, ChevronDown, Folder, FolderOpen } from 'lucide-react';
+import { Loader2, Plus, RefreshCcw, ChevronRight, ChevronDown, Folder, FolderOpen, Edit2, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import {
   CategoryDto,
   CategoryTreeNode,
   createCategoryApi,
+  updateCategoryApi,
+  deleteCategoryApi,
   fetchCategories,
   uploadMedia,
 } from '@/services/catalogApi';
@@ -54,7 +56,10 @@ export default function AdminCategoriesPage() {
   const [categoryForm, setCategoryForm] = useState(initialCategoryForm);
   const [subcategoryForm, setSubcategoryForm] = useState(initialSubcategoryForm);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [uploadingImage, setUploadingImage] = useState<'category' | 'subcategory' | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<'category' | 'subcategory' | 'edit' | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryDto | null>(null);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<SubcategoryFormState>(initialSubcategoryForm);
   const isAuthenticated = Boolean(accessToken);
 
   const topLevelCategories = useMemo(
@@ -83,7 +88,7 @@ export default function AdminCategoriesPage() {
     loadCategories();
   }, []);
 
-  const handleImageUpload = async (file: File, formType: 'category' | 'subcategory') => {
+  const handleImageUpload = async (file: File, formType: 'category' | 'subcategory' | 'edit') => {
     if (!file.type.startsWith('image/')) {
       setError('Only image files are supported.');
       return;
@@ -104,13 +109,19 @@ export default function AdminCategoriesPage() {
       setError('');
       const response = await uploadMedia(file, accessToken, { folder: 'categories' });
       const imageUrl = response.file.url;
+      console.log('Uploaded image URL:', imageUrl);
+
+      // Small delay to ensure URL is accessible
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       if (formType === 'category') {
         setCategoryForm((prev) => ({ ...prev, image: imageUrl }));
-      } else {
+      } else if (formType === 'subcategory') {
         setSubcategoryForm((prev) => ({ ...prev, image: imageUrl }));
+      } else if (formType === 'edit') {
+        setEditForm((prev) => ({ ...prev, image: imageUrl }));
       }
-      setSuccess('Image uploaded successfully.');
+      setSuccess('Image uploaded successfully. You can see the preview below.');
     } catch (err) {
       console.error('Image upload failed', err);
       const errorMessage =
@@ -118,6 +129,96 @@ export default function AdminCategoriesPage() {
       setError(errorMessage);
     } finally {
       setUploadingImage(null);
+    }
+  };
+
+  const handleEditCategory = (category: CategoryDto) => {
+    setEditingCategory(category);
+    setEditForm({
+      name: category.name,
+      slug: category.slug,
+      description: category.description || '',
+      image: category.image || '',
+      isActive: category.isActive,
+      parent: category.parent || '',
+    });
+    setError('');
+    setSuccess('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
+    setEditForm(initialSubcategoryForm);
+    setError('');
+    setSuccess('');
+  };
+
+  const handleUpdateCategory = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!accessToken || !editingCategory) {
+      setError('Admin session expired. Please sign in again.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await updateCategoryApi(
+        editingCategory._id,
+        {
+          name: editForm.name.trim(),
+          slug: editForm.slug.trim() || undefined,
+          description: editForm.description.trim() || undefined,
+          image: editForm.image || undefined,
+          isActive: editForm.isActive,
+          // If editing a subcategory and parent is empty, set to null to convert to top-level
+          // If editing a category and parent is set, convert to subcategory
+          // Otherwise, keep existing parent
+          parent: editForm.parent ? editForm.parent : editingCategory.parent ? null : undefined,
+        },
+        accessToken,
+      );
+      setSuccess('Category updated successfully.');
+      setEditingCategory(null);
+      setEditForm(initialCategoryForm);
+      await loadCategories();
+    } catch (err) {
+      console.error('Failed to update category', err);
+      const message = err instanceof ApiClientError ? err.message : 'Failed to update category.';
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!accessToken) {
+      setError('Admin session expired. Please sign in again.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingCategoryId(categoryId);
+    setError('');
+    setSuccess('');
+
+    try {
+      await deleteCategoryApi(categoryId, accessToken);
+      setSuccess('Category deleted successfully.');
+      await loadCategories();
+    } catch (err) {
+      console.error('Failed to delete category', err);
+      const message =
+        err instanceof ApiClientError
+          ? err.message
+          : 'Failed to delete category. Make sure it has no subcategories or products.';
+      setError(message);
+    } finally {
+      setDeletingCategoryId(null);
     }
   };
 
@@ -298,15 +399,41 @@ export default function AdminCategoriesPage() {
                       <p className="text-xs text-muted mt-1 line-clamp-1">{node.description}</p>
                     )}
                   </div>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap flex-shrink-0 ${
-                      node.isActive
-                        ? 'bg-emerald-500/10 text-emerald-600'
-                        : 'bg-muted/20 text-muted'
-                    }`}
-                  >
-                    {node.isActive ? 'Active' : 'Archived'}
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
+                        node.isActive
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : 'bg-muted/20 text-muted'
+                      }`}
+                    >
+                      {node.isActive ? 'Active' : 'Archived'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const category = categories.find((c) => c._id === node._id);
+                        if (category) handleEditCategory(category);
+                      }}
+                      className="p-1.5 rounded-md hover:bg-primary/10 text-muted hover:text-primary transition-colors"
+                      aria-label="Edit category"
+                      title="Edit category"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(node._id)}
+                      disabled={deletingCategoryId === node._id}
+                      className="p-1.5 rounded-md hover:bg-destructive/10 text-muted hover:text-destructive transition-colors disabled:opacity-50"
+                      aria-label="Delete category"
+                      title="Delete category"
+                    >
+                      {deletingCategoryId === node._id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -411,15 +538,21 @@ export default function AdminCategoriesPage() {
                       alt="Category preview"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        console.error('Image load error:', e);
+                        console.warn('Image failed to load:', categoryForm.image);
+                        setError('Image failed to load. The URL may be incorrect, but it will be saved. You can upload a new image to replace it.');
                         (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        if (error.includes('Image failed to load')) {
+                          setError('');
+                        }
                       }}
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setCategoryForm((prev) => ({ ...prev, image: '' }))}
-                    className="absolute top-2 right-2 p-1.5 bg-danger/90 hover:bg-danger text-white rounded-lg transition-colors"
+                    className="absolute top-2 right-2 p-1.5 bg-danger/90 hover:bg-danger text-white rounded-lg transition-colors z-10"
                     aria-label="Remove image"
                   >
                     <X className="w-4 h-4" />
@@ -570,15 +703,21 @@ export default function AdminCategoriesPage() {
                       alt="Subcategory preview"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        console.error('Image load error:', e);
+                        console.warn('Image failed to load:', subcategoryForm.image);
+                        setError('Image failed to load. The URL may be incorrect, but it will be saved. You can upload a new image to replace it.');
                         (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        if (error.includes('Image failed to load')) {
+                          setError('');
+                        }
                       }}
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setSubcategoryForm((prev) => ({ ...prev, image: '' }))}
-                    className="absolute top-2 right-2 p-1.5 bg-danger/90 hover:bg-danger text-white rounded-lg transition-colors"
+                    className="absolute top-2 right-2 p-1.5 bg-danger/90 hover:bg-danger text-white rounded-lg transition-colors z-10"
                     aria-label="Remove image"
                   >
                     <X className="w-4 h-4" />
@@ -653,6 +792,214 @@ export default function AdminCategoriesPage() {
         >
           {error || success}
         </div>
+      )}
+
+      {editingCategory && (
+        <section className="rounded-2xl border-2 border-primary/20 bg-surface p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Edit {editingCategory.parent ? 'Subcategory' : 'Category'}
+              </h2>
+              <p className="text-xs text-muted">Editing: {editingCategory.name}</p>
+            </div>
+            <button
+              onClick={handleCancelEdit}
+              className="p-2 rounded-lg hover:bg-muted transition-colors text-muted hover:text-foreground"
+              aria-label="Cancel edit"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleUpdateCategory} className="space-y-4">
+            {editingCategory.parent && (
+              <div>
+                <label className="text-xs font-semibold uppercase text-muted/80">Parent Category</label>
+                <select
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                  value={editForm.parent}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, parent: event.target.value }))
+                  }
+                >
+                  <option value="">Convert to top-level category</option>
+                  {topLevelCategories
+                    .filter((cat) => cat._id !== editingCategory._id)
+                    .map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-1 text-xs text-muted">
+                  Select a parent category or leave empty to convert to a top-level category
+                </p>
+              </div>
+            )}
+
+            {!editingCategory.parent && (
+              <div>
+                <label className="text-xs font-semibold uppercase text-muted/80">
+                  Convert to Subcategory (optional)
+                </label>
+                <select
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                  value={editForm.parent}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, parent: event.target.value }))
+                  }
+                >
+                  <option value="">Keep as top-level category</option>
+                  {topLevelCategories
+                    .filter((cat) => cat._id !== editingCategory._id)
+                    .map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label className="text-xs font-semibold uppercase text-muted/80">Name</label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                placeholder="Eg. Industrial Equipment"
+                value={editForm.name}
+                onChange={(event) => setEditForm((prev) => ({ ...prev, name: event.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold uppercase text-muted/80">Slug (optional)</label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                placeholder="industrial-equipment"
+                value={editForm.slug}
+                onChange={(event) => setEditForm((prev) => ({ ...prev, slug: event.target.value }))}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold uppercase text-muted/80">
+                Description (optional)
+              </label>
+              <textarea
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                rows={3}
+                value={editForm.description}
+                onChange={(event) =>
+                  setEditForm((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold uppercase text-muted/80">
+                Category Image (optional)
+              </label>
+              {editForm.image ? (
+                <div className="mt-2 relative group">
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden border-2 border-border bg-muted/10">
+                    <img
+                      src={editForm.image}
+                      alt="Category preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Don't clear the image, just show error message
+                        console.warn('Image failed to load:', editForm.image);
+                        setError('Image failed to load. The URL may be incorrect, but it will be saved. You can upload a new image to replace it.');
+                        // Show a placeholder instead of hiding
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        // Clear any previous error when image loads successfully
+                        if (error.includes('Image failed to load')) {
+                          setError('');
+                        }
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditForm((prev) => ({ ...prev, image: '' }))}
+                    className="absolute top-2 right-2 p-1.5 bg-danger/90 hover:bg-danger text-white rounded-lg transition-colors z-10"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="mt-2 flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-colors group">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {uploadingImage === 'edit' ? (
+                      <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                    ) : (
+                      <Upload className="w-8 h-8 text-muted group-hover:text-primary mb-2" />
+                    )}
+                    <p className="mb-2 text-sm text-muted group-hover:text-foreground">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-muted">PNG, JPG, GIF up to 5MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(file, 'edit');
+                      }
+                    }}
+                    disabled={uploadingImage === 'edit'}
+                  />
+                </label>
+              )}
+            </div>
+
+            <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                checked={editForm.isActive}
+                onChange={(event) =>
+                  setEditForm((prev) => ({ ...prev, isActive: event.target.checked }))
+                }
+              />
+              Visible to buyers
+            </label>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={submitting || !isAuthenticated}
+              >
+                {submitting ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Updating...
+                  </span>
+                ) : (
+                  'Update Category'
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="px-4 py-3 rounded-xl border border-border bg-surface text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
       )}
 
       <section className="rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-sm">
