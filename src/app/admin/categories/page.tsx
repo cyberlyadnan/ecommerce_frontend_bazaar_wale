@@ -181,7 +181,7 @@ export default function AdminCategoriesPage() {
       );
       setSuccess('Category updated successfully.');
       setEditingCategory(null);
-      setEditForm(initialCategoryForm);
+      setEditForm(initialSubcategoryForm);
       await loadCategories();
     } catch (err) {
       console.error('Failed to update category', err);
