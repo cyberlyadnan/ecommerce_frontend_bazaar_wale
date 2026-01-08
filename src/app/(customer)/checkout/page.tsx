@@ -304,7 +304,7 @@ export default function CheckoutPage() {
                 </h2>
 
                 {/* Address Selector */}
-                {!useManualEntry && (
+                {!useManualEntry && accessToken && (
                   <div className="mb-6">
                     <AddressSelector
                       selectedAddress={selectedAddress}

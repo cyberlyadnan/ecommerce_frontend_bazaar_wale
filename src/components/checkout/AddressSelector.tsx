@@ -246,7 +246,6 @@ export function AddressSelector({ selectedAddress, onSelectAddress, accessToken 
           type="button"
           onClick={() => {
             setShowAddForm(true);
-            setSelectedAddress(null);
           }}
           className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg text-muted hover:border-primary hover:text-primary transition-colors bg-surface/50 hover:bg-surface"
         >
