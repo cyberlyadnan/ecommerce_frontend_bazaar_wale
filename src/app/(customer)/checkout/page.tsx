@@ -21,6 +21,8 @@ import {
 } from '@/services/orderApi';
 import { setCartItems } from '@/store/redux/slices/cartSlice';
 import { useAppDispatch } from '@/store/redux/store';
+import { AddressSelector } from '@/components/checkout/AddressSelector';
+import { Address } from '@/services/addressApi';
 
 declare global {
   interface Window {
@@ -51,11 +53,14 @@ export default function CheckoutPage() {
   const [orderCreated, setOrderCreated] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [useManualEntry, setUseManualEntry] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<CheckoutFormData>({
     defaultValues: {
       country: 'India',
@@ -112,20 +117,37 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate that either a saved address is selected or manual entry is filled
+    if (!selectedAddress && !useManualEntry) {
+      toast.error('Please select a saved address or fill in the address form');
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // Create order and Razorpay order
-      const shippingAddress: ShippingAddress = {
-        name: data.name,
-        phone: data.phone,
-        line1: data.line1,
-        line2: data.line2 || undefined,
-        city: data.city,
-        state: data.state,
-        country: data.country || 'India',
-        postalCode: data.postalCode,
-      };
+      // Use selected address if available, otherwise use form data
+      const shippingAddress: ShippingAddress = selectedAddress
+        ? {
+            name: selectedAddress.name,
+            phone: selectedAddress.phone,
+            line1: selectedAddress.line1,
+            line2: selectedAddress.line2,
+            city: selectedAddress.city,
+            state: selectedAddress.state,
+            country: selectedAddress.country || 'India',
+            postalCode: selectedAddress.postalCode,
+          }
+        : {
+            name: data.name,
+            phone: data.phone,
+            line1: data.line1,
+            line2: data.line2 || undefined,
+            city: data.city,
+            state: data.state,
+            country: data.country || 'India',
+            postalCode: data.postalCode,
+          };
 
       const orderResponse = await createOrder(shippingAddress, accessToken);
       setCurrentOrder(orderResponse.order);
@@ -175,8 +197,8 @@ export default function CheckoutPage() {
           }
         },
         prefill: {
-          name: data.name,
-          contact: data.phone,
+          name: shippingAddress.name,
+          contact: shippingAddress.phone,
           email: '',
         },
         theme: {
@@ -281,7 +303,61 @@ export default function CheckoutPage() {
                   Shipping Address
                 </h2>
 
-                <div className="space-y-4">
+                {/* Address Selector */}
+                {!useManualEntry && (
+                  <div className="mb-6">
+                    <AddressSelector
+                      selectedAddress={selectedAddress}
+                      onSelectAddress={(address) => {
+                        setSelectedAddress(address);
+                        setUseManualEntry(false);
+                        // Populate form with selected address values for fallback
+                        if (address) {
+                          reset({
+                            name: address.name,
+                            phone: address.phone,
+                            line1: address.line1,
+                            line2: address.line2 || '',
+                            city: address.city,
+                            state: address.state,
+                            country: address.country || 'India',
+                            postalCode: address.postalCode,
+                          });
+                        }
+                      }}
+                      accessToken={accessToken}
+                    />
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUseManualEntry(true);
+                          setSelectedAddress(null);
+                        }}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Or enter a new address manually
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual Entry Form */}
+                {useManualEntry && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-muted">Enter address manually</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUseManualEntry(false);
+                          // Keep selected address if available
+                        }}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Use saved address instead
+                      </button>
+                    </div>
                   <div>
                     <label
                       htmlFor="name"
@@ -293,7 +369,7 @@ export default function CheckoutPage() {
                       type="text"
                       id="name"
                       {...register('name', {
-                        required: 'Name is required',
+                        required: useManualEntry ? 'Name is required' : false,
                         minLength: {
                           value: 2,
                           message: 'Name must be at least 2 characters',
@@ -320,7 +396,7 @@ export default function CheckoutPage() {
                       type="tel"
                       id="phone"
                       {...register('phone', {
-                        required: 'Phone number is required',
+                        required: useManualEntry ? 'Phone number is required' : false,
                         pattern: {
                           value: /^[6-9]\d{9}$/,
                           message: 'Invalid phone number',
@@ -347,7 +423,7 @@ export default function CheckoutPage() {
                       type="text"
                       id="line1"
                       {...register('line1', {
-                        required: 'Address line 1 is required',
+                        required: useManualEntry ? 'Address line 1 is required' : false,
                       })}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                       placeholder="Street address, P.O. box"
@@ -387,7 +463,7 @@ export default function CheckoutPage() {
                         type="text"
                         id="city"
                         {...register('city', {
-                          required: 'City is required',
+                          required: useManualEntry ? 'City is required' : false,
                         })}
                         className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                         placeholder="City"
@@ -410,7 +486,7 @@ export default function CheckoutPage() {
                         type="text"
                         id="state"
                         {...register('state', {
-                          required: 'State is required',
+                          required: useManualEntry ? 'State is required' : false,
                         })}
                         className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                         placeholder="State"
@@ -435,7 +511,7 @@ export default function CheckoutPage() {
                         type="text"
                         id="postalCode"
                         {...register('postalCode', {
-                          required: 'Postal code is required',
+                          required: useManualEntry ? 'Postal code is required' : false,
                           pattern: {
                             value: /^\d{6}$/,
                             message: 'Invalid postal code (must be 6 digits)',
@@ -462,7 +538,7 @@ export default function CheckoutPage() {
                         type="text"
                         id="country"
                         {...register('country', {
-                          required: 'Country is required',
+                          required: useManualEntry ? 'Country is required' : false,
                         })}
                         className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                         placeholder="Country"
@@ -474,7 +550,8 @@ export default function CheckoutPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -533,7 +610,7 @@ export default function CheckoutPage() {
 
                 <button
                   type="submit"
-                  disabled={loading || !razorpayLoaded || orderCreated}
+                  disabled={loading || !razorpayLoaded || orderCreated || (!selectedAddress && !useManualEntry)}
                   className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (

@@ -18,6 +18,7 @@ import {
   LogOut,
   FileText,
   Hourglass,
+  MapPin,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -310,6 +311,19 @@ export default function ProfilePage() {
                   <div>
                     <p className="font-semibold text-foreground">History</p>
                     <p className="text-xs text-muted">Browse history</p>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/profile/addresses"
+                  className="flex items-center gap-3 p-4 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <MapPin className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Saved Addresses</p>
+                    <p className="text-xs text-muted">Manage addresses</p>
                   </div>
                 </Link>
               </div>
