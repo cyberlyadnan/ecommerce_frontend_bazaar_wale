@@ -56,6 +56,8 @@ export interface ProductDto {
   } | null;
   price: number;
   pricingTiers: PricingTierDto[];
+  taxCode?: string;
+  taxPercentage?: number;
   isActive: boolean;
   approvedByAdmin: boolean;
   featured?: boolean;
@@ -92,6 +94,8 @@ export interface CreateProductPayload {
   vendorId: string;
   price: number;
   pricingTiers?: PricingTierDto[];
+  taxCode?: string;
+  taxPercentage?: number;
   isActive?: boolean;
   approvedByAdmin?: boolean;
   featured?: boolean;

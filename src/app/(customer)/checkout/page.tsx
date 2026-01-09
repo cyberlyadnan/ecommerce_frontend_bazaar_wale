@@ -591,11 +591,27 @@ export default function CheckoutPage() {
                       {formatCurrency(calculation.shippingCost)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted">Tax (GST)</span>
-                    <span className="text-foreground">
-                      {formatCurrency(calculation.tax)}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted">Tax</span>
+                      <span className="text-foreground">
+                        {formatCurrency(calculation.tax)}
+                      </span>
+                    </div>
+                    {calculation.items.length > 0 && calculation.items.some(item => item.taxAmount > 0) && (
+                      <div className="pl-4 space-y-0.5 text-xs text-muted">
+                        {calculation.items.map((item, idx) => (
+                          item.taxAmount > 0 && (
+                            <div key={idx} className="flex justify-between">
+                              <span className="truncate max-w-[200px]">
+                                {item.title} ({item.taxPercentage || 18}%)
+                              </span>
+                              <span>{formatCurrency(item.taxAmount || 0)}</span>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

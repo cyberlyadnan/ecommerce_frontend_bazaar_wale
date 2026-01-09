@@ -30,6 +30,9 @@ export interface OrderCalculation {
     qty: number;
     pricePerUnit: number;
     totalPrice: number;
+    taxCode?: string;
+    taxPercentage: number;
+    taxAmount: number;
   }>;
 }
 

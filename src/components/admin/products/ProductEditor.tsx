@@ -52,6 +52,8 @@ interface ProductFormState {
   minOrderQty: string;
   weightKg: string;
   tags: string;
+  taxCode: string;
+  taxPercentage: string;
   isActive: boolean;
   approvedByAdmin: boolean;
   featured: boolean;
@@ -74,6 +76,8 @@ const createInitialFormState = (product?: ProductDto): ProductFormState => ({
   minOrderQty: product ? String(product.minOrderQty ?? '') : '',
   weightKg: product && typeof product.weightKg === 'number' ? String(product.weightKg) : '',
   tags: product?.tags?.join(', ') ?? '',
+  taxCode: product?.taxCode ?? 'GST',
+  taxPercentage: product?.taxPercentage ? String(product.taxPercentage) : '18',
   isActive: product?.isActive ?? true,
   approvedByAdmin: product?.approvedByAdmin ?? false,
   featured: product?.featured ?? false,
@@ -312,6 +316,8 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
       stock: form.stock ? Number(form.stock) : undefined,
       minOrderQty: form.minOrderQty ? Number(form.minOrderQty) : undefined,
       weightKg: form.weightKg ? Number(form.weightKg) : undefined,
+      taxCode: form.taxCode || 'GST',
+      taxPercentage: form.taxPercentage ? Number(form.taxPercentage) : 18,
       tags: form.tags
         ? form.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
         : undefined,
@@ -589,6 +595,48 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
               placeholder="Eg. 18.5"
             />
+          </div>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-3">
+            <label className="text-xs font-semibold uppercase text-muted/80">
+              Tax Code <span className="text-danger">*</span>
+            </label>
+            <select
+              value={form.taxCode}
+              onChange={(event) => handleFieldChange('taxCode', event.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+              required
+            >
+              <option value="GST">GST</option>
+              <option value="IGST">IGST</option>
+              <option value="CGST+SGST">CGST+SGST</option>
+              <option value="Exempt">Exempt</option>
+            </select>
+            <p className="text-xs text-muted">
+              Select the applicable tax code for this product
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-xs font-semibold uppercase text-muted/80">
+              Tax Percentage (%) <span className="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={form.taxPercentage}
+              onChange={(event) => handleFieldChange('taxPercentage', event.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
+              placeholder="Eg. 18"
+              required
+            />
+            <p className="text-xs text-muted">
+              Tax percentage (0-100). Default: 18% for GST
+            </p>
           </div>
         </div>
 
