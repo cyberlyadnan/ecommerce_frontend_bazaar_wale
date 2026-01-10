@@ -17,6 +17,7 @@ import { ApiClientError } from '@/lib/apiClient';
 import { useAppSelector } from '@/store/redux/store';
 import Image from 'next/image';
 import { Upload, X } from 'lucide-react';
+import { compressCategoryImage } from '@/utils/imageCompression';
 
 interface CategoryFormState {
   name: string;
@@ -94,8 +95,9 @@ export default function AdminCategoriesPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be smaller than 5MB.');
+    // Check original file size (before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image must be smaller than 10MB before compression.');
       return;
     }
 
@@ -107,7 +109,13 @@ export default function AdminCategoriesPage() {
     try {
       setUploadingImage(formType);
       setError('');
-      const response = await uploadMedia(file, accessToken, { folder: 'categories' });
+      setSuccess('Compressing image...');
+      
+      // Compress and optimize image before upload
+      const compressedFile = await compressCategoryImage(file);
+      
+      setSuccess('Uploading image...');
+      const response = await uploadMedia(compressedFile, accessToken, { folder: 'categories' });
       const imageUrl = response.file.url;
       console.log('Uploaded image URL:', imageUrl);
 

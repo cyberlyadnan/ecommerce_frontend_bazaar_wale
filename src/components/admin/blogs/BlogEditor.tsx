@@ -7,6 +7,7 @@ import { Loader2, Save, Trash2, UploadCloud } from 'lucide-react';
 import { ApiClientError } from '@/lib/apiClient';
 import { useAppSelector } from '@/store/redux/store';
 import { uploadMedia } from '@/services/catalogApi';
+import { compressBlogImage } from '@/utils/imageCompression';
 import {
   BlogDto,
   BlogStatus,
@@ -142,8 +143,9 @@ export function BlogEditor({ mode, accessToken, blog, onSaved, onDeleted }: Blog
       setMessage({ type: 'error', text: 'Only image files are supported.' });
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'Image must be smaller than 5MB.' });
+    // Check original file size (before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'Image must be smaller than 10MB before compression.' });
       return;
     }
     if (!accessToken) {
@@ -152,7 +154,13 @@ export function BlogEditor({ mode, accessToken, blog, onSaved, onDeleted }: Blog
     }
     try {
       setUploadingHero(true);
-      const res = await uploadMedia(file, accessToken, { folder: 'blogs' });
+      setMessage({ type: 'success', text: 'Compressing image...' });
+      
+      // Compress and optimize image before upload
+      const compressedFile = await compressBlogImage(file);
+      
+      setMessage({ type: 'success', text: 'Uploading image...' });
+      const res = await uploadMedia(compressedFile, accessToken, { folder: 'blogs' });
       setForm((p) => ({ ...p, featuredImageUrl: res.file.url }));
       setMessage({ type: 'success', text: 'Featured image uploaded.' });
     } catch (err) {
@@ -167,13 +175,17 @@ export function BlogEditor({ mode, accessToken, blog, onSaved, onDeleted }: Blog
     if (!file.type.startsWith('image/')) {
       throw new Error('Only image files are supported.');
     }
-    if (file.size > 5 * 1024 * 1024) {
-      throw new Error('Image must be smaller than 5MB.');
+    // Check original file size (before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('Image must be smaller than 10MB before compression.');
     }
     if (!accessToken) {
       throw new Error('Admin session expired. Please sign in again.');
     }
-    const res = await uploadMedia(file, accessToken, { folder: 'blogs' });
+    
+    // Compress and optimize image before upload
+    const compressedFile = await compressBlogImage(file);
+    const res = await uploadMedia(compressedFile, accessToken, { folder: 'blogs' });
     return { url: res.file.url };
   };
 

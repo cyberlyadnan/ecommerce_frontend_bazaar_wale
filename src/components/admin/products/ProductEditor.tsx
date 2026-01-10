@@ -13,6 +13,7 @@ import {
 } from '@/services/catalogApi';
 import { ApiClientError } from '@/lib/apiClient';
 import { useAppSelector } from '@/store/redux/store';
+import { compressProductImage } from '@/utils/imageCompression';
 
 interface ProductEditorProps {
   mode: 'create' | 'edit';
@@ -178,10 +179,11 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    // Check original file size (before compression)
+    if (file.size > 10 * 1024 * 1024) {
       setMessage({
         type: 'error',
-        text: 'Image must be smaller than 5MB.',
+        text: 'Image must be smaller than 10MB before compression.',
       });
       return;
     }
@@ -196,7 +198,20 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
 
     try {
       setUploadingImageIndex(index);
-      const response = await uploadMedia(file, accessToken, { folder: 'products' });
+      
+      // Compress and optimize image before upload
+      setMessage({
+        type: 'success',
+        text: 'Compressing image...',
+      });
+      const compressedFile = await compressProductImage(file);
+      
+      // Upload compressed image
+      setMessage({
+        type: 'success',
+        text: 'Uploading image...',
+      });
+      const response = await uploadMedia(compressedFile, accessToken, { folder: 'products' });
       const imageUrl = response.file.url;
       console.log('imageUrl', imageUrl);
       setForm((prev) => {
