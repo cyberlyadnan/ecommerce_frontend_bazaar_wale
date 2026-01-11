@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
     try {
       await resetPasswordWithToken({ email, token, password });
       setStatus('Password reset successfully. You can now sign in.');
-      setTimeout(() => router.replace('/login'), 2000);
+      setTimeout(() => router.replace('/auth/login'), 2000);
     } catch (err) {
       const message =
         err instanceof ApiClientError
@@ -136,7 +136,7 @@ export default function ResetPasswordPage() {
 
           <p className="text-center text-muted mt-6">
             Back to{' '}
-            <Link href="/login" className="text-primary hover:text-primary/80 font-semibold transition-colors">
+            <Link href="/auth/login" className="text-primary hover:text-primary/80 font-semibold transition-colors">
               sign in
             </Link>
           </p>
