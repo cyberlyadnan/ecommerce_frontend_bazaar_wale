@@ -327,10 +327,10 @@ function CategoryTreeNodeComponent({
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold text-sm shadow-md group-hover:shadow-lg transition-all">
+              {/* <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold text-sm shadow-md group-hover:shadow-lg transition-all">
                 <span>Shop</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

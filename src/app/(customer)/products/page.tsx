@@ -445,7 +445,7 @@ export default function ProductsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {filteredAndSortedProducts.map((product) => {
                       const averageRating = typeof product.meta?.averageRating === 'number'
                         ? product.meta.averageRating as number
@@ -466,15 +466,15 @@ export default function ProductsPage() {
                         for (let i = 1; i <= 5; i++) {
                           if (i <= fullStars) {
                             stars.push(
-                              <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
+                              <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-secondary text-secondary" />
                             );
                           } else if (i === fullStars + 1 && hasHalfStar) {
                             stars.push(
-                              <StarHalf key={i} className="w-4 h-4 fill-secondary text-secondary" />
+                              <StarHalf key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-secondary text-secondary" />
                             );
                           } else {
                             stars.push(
-                              <Star key={i} className="w-4 h-4 text-foreground/20" />
+                              <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground/20" />
                             );
                           }
                         }
@@ -484,99 +484,123 @@ export default function ProductsPage() {
                       return (
                         <div
                           key={product._id}
-                          className="bg-surface border border-border rounded-xl p-6 hover:shadow-lg transition-all hover:border-primary/50"
+                          className="group relative bg-surface border border-border/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/40 hover:-translate-y-1"
                         >
-                          <div className="flex flex-col lg:flex-row gap-6">
+                          <div className="flex flex-col md:flex-row gap-4 sm:gap-5 md:gap-6 p-4 sm:p-5 md:p-6">
                             {/* Product Image */}
-                            <Link href={`/products/${product.slug}`} className="flex-shrink-0">
-                              <div className="relative w-full lg:w-48 h-64 lg:h-48 rounded-lg overflow-hidden bg-muted/30 group">
-                                {product.images?.[0]?.url ? (
-                                  <Image
-                                    src={resolveProductImage(product.images[0].url)}
-                                    alt={product.images[0].alt || product.title}
-                                    fill
-                                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-foreground/40">
-                                    No Image
-                                  </div>
-                                )}
-                                {discountPercentage && (
-                                  <div className="absolute top-2 left-2">
-                                    <span className="px-2 py-1 text-xs font-bold bg-secondary text-white rounded-md">
-                                      -{discountPercentage}%
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="absolute top-2 right-2">
-                                  <FavoriteButton productId={product._id} />
+                            <Link href={`/products/${product.slug}`} className="flex-shrink-0 w-full md:w-40 lg:w-48 h-48 sm:h-56 md:h-40 lg:h-48 rounded-xl overflow-hidden bg-gradient-to-br from-muted/30 to-muted/10 group/image relative">
+                              {product.images?.[0]?.url ? (
+                                <Image
+                                  src={resolveProductImage(product.images[0].url)}
+                                  alt={product.images[0].alt || product.title}
+                                  fill
+                                  className="object-cover transition-transform duration-500 group-hover/image:scale-110"
+                                  sizes="(max-width: 768px) 100vw, 192px"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-foreground/40 text-sm">
+                                  No Image
                                 </div>
+                              )}
+                              {/* Gradient Overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+                              
+                              {/* Discount Badge */}
+                              {discountPercentage && (
+                                <div className="absolute top-2 left-2 z-10">
+                                  <span className="px-2.5 py-1 text-xs font-bold bg-gradient-to-r from-secondary to-secondary/90 text-white rounded-lg shadow-lg backdrop-blur-sm">
+                                    -{discountPercentage}%
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Favorite Button */}
+                              <div className="absolute top-2 right-2 z-10">
+                                <FavoriteButton productId={product._id} />
                               </div>
+
+                              {/* Stock Overlay */}
+                              {product.stock === 0 && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-20">
+                                  <span className="px-3 py-1.5 text-xs font-bold bg-danger/90 text-white rounded-lg shadow-lg backdrop-blur-sm">
+                                    Out of Stock
+                                  </span>
+                                </div>
+                              )}
                             </Link>
 
                             {/* Product Info */}
-                            <div className="flex-1 min-w-0 space-y-4">
-                              <div>
+                            <div className="flex-1 min-w-0 flex flex-col gap-3 sm:gap-4">
+                              {/* Title and Description */}
+                              <div className="space-y-2">
                                 <Link href={`/products/${product.slug}`}>
-                                  <h3 className="text-xl font-semibold text-foreground mb-2 hover:text-primary transition-colors line-clamp-2">
+                                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight group-hover:text-primary">
                                     {product.title}
                                   </h3>
                                 </Link>
+                                
                                 {product.shortDescription && (
-                                  <p className="text-sm text-foreground/70 mb-3 line-clamp-2">
+                                  <p className="text-sm sm:text-base text-foreground/60 line-clamp-2 leading-relaxed">
                                     {product.shortDescription}
                                   </p>
                                 )}
 
                                 {/* Rating */}
                                 {totalReviews > 0 && (
-                                  <div className="flex items-center gap-2 mb-3">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <div className="flex items-center gap-0.5">
                                       {renderStars(averageRating)}
                                     </div>
-                                    <span className="text-sm font-medium text-foreground">
+                                    <span className="text-sm font-semibold text-foreground">
                                       {averageRating.toFixed(1)}
                                     </span>
-                                    <span className="text-sm text-foreground/60">
+                                    <span className="text-sm text-foreground/50">
                                       ({totalReviews} {totalReviews === 1 ? 'review' : 'reviews'})
                                     </span>
                                   </div>
                                 )}
                               </div>
 
-                              {/* Price and Actions */}
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-border">
-                                <div className="space-y-1">
-                                  <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-bold text-primary">
-                                      {formatCurrency(currentPrice)}
-                                    </span>
-                                    {tierPrice && tierPrice < product.price && (
-                                      <span className="text-sm text-foreground/60 line-through">
-                                        {formatCurrency(product.price)}
+                              {/* Bottom Section: Price, MOQ, and Actions */}
+                              <div className="mt-auto pt-3 sm:pt-4 border-t border-border/40 space-y-3 sm:space-y-4">
+                                {/* Price and MOQ Row */}
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                  <div className="space-y-2">
+                                    <div className="flex items-baseline gap-2 flex-wrap">
+                                      <span className="text-2xl sm:text-3xl font-bold text-primary">
+                                        {formatCurrency(currentPrice)}
                                       </span>
+                                      {tierPrice && tierPrice < product.price && (
+                                        <span className="text-sm sm:text-base text-foreground/50 line-through">
+                                          {formatCurrency(product.price)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {product.minOrderQty && product.minOrderQty > 1 && (
+                                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-lg text-xs sm:text-sm text-primary font-semibold">
+                                        <Package className="w-3.5 h-3.5" />
+                                        <span>MOQ: {product.minOrderQty} units</span>
+                                      </div>
                                     )}
                                   </div>
-                                  {product.minOrderQty && product.minOrderQty > 1 && (
-                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 rounded-full text-xs text-primary font-medium">
-                                      <Package className="w-3 h-3" />
-                                      <span>MOQ: {product.minOrderQty} units</span>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="w-full sm:w-auto">
-                                  <AddToCartButton
-                                    productId={product._id}
-                                    minOrderQty={product.minOrderQty || 1}
-                                    stock={product.stock || 0}
-                                    isActive={product.isActive}
-                                    className="w-full sm:w-auto sm:min-w-[200px]"
-                                  />
+                                  
+                                  {/* Add to Cart Button */}
+                                  <div className="w-full sm:w-auto sm:min-w-[200px]">
+                                    <AddToCartButton
+                                      productId={product._id}
+                                      minOrderQty={product.minOrderQty || 1}
+                                      stock={product.stock || 0}
+                                      isActive={product.isActive}
+                                      className="w-full sm:w-auto"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
+
+                          {/* Hover Border Glow */}
+                          <div className="pointer-events-none absolute inset-0 rounded-2xl ring-0 ring-primary/0 group-hover:ring-2 group-hover:ring-primary/30 transition-all duration-300" />
                         </div>
                       );
                     })}
