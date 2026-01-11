@@ -44,12 +44,6 @@ interface RegisterVendorPayload extends RegisterCustomerPayload {
   }>;
 }
 
-interface RegisterAdminPayload {
-  name: string;
-  email: string;
-  password: string;
-}
-
 export const loginWithPassword = (payload: LoginWithPasswordPayload) =>
   apiClient<LoginResponse>("/api/auth/login/password", {
     method: "POST",
@@ -104,13 +98,6 @@ export const registerVendor = (payload: RegisterVendorPayload, accessToken?: str
     accessToken: hasValidToken ? accessToken : undefined,
   });
 };
-
-export const registerAdmin = (payload: RegisterAdminPayload) =>
-  apiClient<{ user: AuthUser }>("/api/auth/register/admin", {
-    method: "POST",
-    body: JSON.stringify(payload),
-    skipAuthHeader: true,
-  });
 
 export const fetchProfile = (accessToken: string | null) =>
   apiClient<{ user: AuthUser }>("/api/auth/profile", {
