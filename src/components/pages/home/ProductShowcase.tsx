@@ -50,8 +50,8 @@ export default function ProductShowcase({
           <p className="text-xl text-foreground/70 max-w-3xl mx-auto mb-8">{description}</p>
         </header>
 
-        {/* Product Grid - 2 columns on mobile, 3 on tablet, 4 on desktop */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Product Grid - Fully responsive: 2 cols mobile, 2 cols sm, 3 cols lg, 4 cols xl */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 auto-rows-fr">
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}

@@ -158,7 +158,7 @@ export function CategoriesClient({
           </button>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
           {filteredTopLevelCategories.map((category) => {
             const categoryImage = getCategoryImage(category.slug, category.image);
 
@@ -166,10 +166,10 @@ export function CategoriesClient({
               <Link
                 key={category._id}
                 href={`/products?category=${category.slug}`}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-surface shadow-sm hover:shadow-xl transition-all duration-300"
+                className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-surface shadow-lg hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 hover:border-primary/60"
               >
-                {/* Image */}
-                <div className="relative aspect-[4/5] overflow-hidden">
+                {/* Image Container */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-muted/40 to-muted/20">
                   <Image
                     src={categoryImage}
                     alt={category.name}
@@ -177,25 +177,48 @@ export function CategoriesClient({
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                   />
-                  {/* aesthetic overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+                  
+                  {/* Gradient Overlay - Enhanced */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
+                  
+                  {/* Animated Gradient Overlay on Hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                  {/* Caption (name) */}
-                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
-                    <div className="flex items-end justify-between gap-2">
-                      <h3 className="text-sm sm:text-base font-bold text-white leading-snug line-clamp-2">
+                  {/* Top Shine Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  {/* Content Container */}
+                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 md:p-5">
+                    {/* Category Name */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="text-sm sm:text-base md:text-lg font-bold text-white leading-tight line-clamp-2 drop-shadow-lg group-hover:text-white transition-colors">
                         {category.name}
                       </h3>
-                      <span className="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 border border-white/15 backdrop-blur text-white transition-all duration-300 group-hover:bg-white/15">
-                        <ArrowRight className="w-4 h-4" />
+                      {/* Arrow Icon - Always Visible on Desktop, Hidden on Mobile */}
+                      <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:translate-x-1 shadow-lg">
+                        <ArrowRight className="w-4 h-4 sm:w-4 sm:h-4" />
                       </span>
                     </div>
-                    <div className="mt-2 h-0.5 w-0 bg-secondary transition-all duration-500 group-hover:w-12" />
+                    
+                    {/* Animated Underline */}
+                    <div className="h-1 bg-gradient-to-r from-secondary via-primary to-secondary rounded-full w-0 group-hover:w-full transition-all duration-500 mb-2" />
+                    
+                    {/* Subtle Bottom Gradient Line */}
+                    <div className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50" />
                   </div>
+
+                  {/* Corner Accent */}
+                  <div className="absolute top-3 right-3 w-2 h-2 bg-secondary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg shadow-secondary/50" />
+                  
+                  {/* Bottom Glow Effect */}
+                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
 
-                {/* Hover ring */}
-                <div className="pointer-events-none absolute inset-0 ring-0 ring-primary/40 group-hover:ring-2 transition-all duration-300" />
+                {/* Border Glow on Hover */}
+                <div className="pointer-events-none absolute inset-0 rounded-2xl ring-0 ring-primary/0 group-hover:ring-2 group-hover:ring-primary/50 transition-all duration-500" />
+                
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
               </Link>
             );
           })}
