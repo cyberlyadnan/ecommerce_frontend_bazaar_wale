@@ -20,13 +20,13 @@ import { RecordProductView } from '@/components/pages/product/RecordProductView'
 import { ProductImageGallery } from '@/components/pages/product/ProductImageGallery';
 
 interface ProductDetailPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
 
   try {
     const product = await getProductBySlug(slug);
@@ -123,22 +123,25 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       {/* Breadcrumb */}
       <div className="bg-surface border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm text-foreground/60" aria-label="Breadcrumb">
-            <span>Home</span>
+          <nav 
+            className="flex items-center space-x-2 text-sm text-foreground/60 overflow-x-auto scrollbar-hide whitespace-nowrap touch-manipulation -mx-4 sm:mx-0 px-4 sm:px-0" 
+            aria-label="Breadcrumb"
+          >
+            <span className="flex-shrink-0">Home</span>
             {product.category?.name && (
               <>
-                <span aria-hidden="true">/</span>
-                <span>{product.category.name}</span>
+                <span aria-hidden="true" className="flex-shrink-0">/</span>
+                <span className="flex-shrink-0">{product.category.name}</span>
               </>
             )}
             {product.subcategory?.name && (
               <>
-                <span aria-hidden="true">/</span>
-                <span>{product.subcategory.name}</span>
+                <span aria-hidden="true" className="flex-shrink-0">/</span>
+                <span className="flex-shrink-0">{product.subcategory.name}</span>
               </>
             )}
-            <span aria-hidden="true">/</span>
-            <span className="text-foreground font-medium">{product.title}</span>
+            <span aria-hidden="true" className="flex-shrink-0">/</span>
+            <span className="text-foreground font-medium flex-shrink-0">{product.title}</span>
           </nav>
         </div>
       </div>
@@ -153,9 +156,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             <div>
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-foreground mb-2">{product.title}</h1>
+                  <h1 className="text-xl md:text-3xl font-bold text-foreground mb-2">{product.title}</h1>
                   {product.shortDescription && (
-                    <p className="text-foreground/70 text-lg mb-3">{product.shortDescription}</p>
+                    <p className="text-foreground/70 text-base md:text-lg mb-3">{product.shortDescription}</p>
                   )}
                   {/* Review Stats */}
                   <div className="mb-4">
