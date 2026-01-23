@@ -135,7 +135,14 @@ export interface VendorDto {
     submittedAt?: string;
     reviewedAt?: string;
     adminNotes?: string;
-    documents?: Array<{ type?: string; url?: string; fileName?: string }>;
+    documents?: Array<{ 
+      _id?: string | null;
+      type?: string; 
+      url?: string; // Legacy - deprecated, use accessUrl instead
+      fileName?: string;
+      accessUrl?: string | null; // Secure API endpoint to access document
+      legacyUrl?: string | null; // Legacy URL (deprecated)
+    }>;
   } | null;
 }
 

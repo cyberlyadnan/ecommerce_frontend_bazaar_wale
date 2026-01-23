@@ -1,9 +1,12 @@
 import { apiClient } from '@/lib/apiClient';
 
 export type VendorDocumentDto = {
+  _id?: string | null;
   type?: string;
-  url?: string;
+  url?: string; // Legacy - deprecated, use accessUrl instead
   fileName?: string;
+  accessUrl?: string | null; // Secure API endpoint to access document
+  legacyUrl?: string | null; // Legacy URL (deprecated)
 };
 
 export type VendorVerificationDto = {

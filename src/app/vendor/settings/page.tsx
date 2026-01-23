@@ -222,17 +222,56 @@ export default function VendorSettingsPage() {
               { key: 'panCard', label: 'PAN Card' },
             ].map(({ key, label }) => {
               const doc = docsByType.get(key);
+              const hasDocument = doc && (doc.accessUrl || doc.legacyUrl || doc.url);
               return (
                 <div key={key} className="rounded-2xl border border-border bg-background p-4">
                   <p className="text-sm font-semibold text-foreground">{label}</p>
                   <p className="mt-1 text-xs text-muted break-all">{doc?.fileName || 'Not available'}</p>
                   <div className="mt-3">
-                    {doc?.url ? (
+                    {hasDocument ? (
                       <a
-                        href={doc.url}
+                        href={doc.accessUrl || doc.legacyUrl || doc.url || '#'}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/60 hover:text-primary transition"
+                        onClick={async (e) => {
+                          // Security: Use secure API endpoint if available
+                          if (doc.accessUrl && accessToken) {
+                            e.preventDefault();
+                            try {
+                              // Fetch document via secure API with authentication
+                              const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL 
+                                ? (process.env.NEXT_PUBLIC_API_BASE_URL.startsWith('http') 
+                                    ? process.env.NEXT_PUBLIC_API_BASE_URL 
+                                    : `http://${process.env.NEXT_PUBLIC_API_BASE_URL}`)
+                                : 'http://localhost:5000';
+                              const secureUrl = `${apiBaseUrl}${doc.accessUrl}`;
+                              
+                              // Fetch with authentication header
+                              const response = await fetch(secureUrl, {
+                                headers: {
+                                  'Authorization': `Bearer ${accessToken}`,
+                                },
+                                credentials: 'include',
+                              });
+                              
+                              if (response.ok) {
+                                // Create blob and open in new window
+                                const blob = await response.blob();
+                                const blobUrl = URL.createObjectURL(blob);
+                                window.open(blobUrl, '_blank');
+                                // Clean up blob URL after a delay
+                                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                              } else {
+                                alert('Failed to access document. Please try again.');
+                              }
+                            } catch (error) {
+                              console.error('Error accessing document:', error);
+                              alert('Failed to access document. Please try again.');
+                            }
+                          }
+                          // If no accessUrl, fallback to legacy URL (for backward compatibility)
+                        }}
                       >
                         <FileText size={14} />
                         View

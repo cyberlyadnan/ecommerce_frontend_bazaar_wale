@@ -549,17 +549,55 @@ export default function AdminVendorsPage() {
                     <p className="mt-1 text-sm font-semibold text-foreground">
                       {doc.fileName || 'Uploaded file'}
                     </p>
-                    {doc.url ? (
+                    {doc.accessUrl || doc.url ? (
                       <a
-                        href={doc.url}
+                        href={doc.accessUrl || doc.url || '#'}
                         target="_blank"
                         rel="noreferrer"
                         className="mt-2 inline-flex text-sm font-semibold text-primary hover:text-primary/80"
+                        onClick={async (e) => {
+                          // Security: Use secure API endpoint if available
+                          if (doc.accessUrl && accessToken) {
+                            e.preventDefault();
+                            try {
+                              // Fetch document via secure API with authentication
+                              const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL 
+                                ? (process.env.NEXT_PUBLIC_API_BASE_URL.startsWith('http') 
+                                    ? process.env.NEXT_PUBLIC_API_BASE_URL 
+                                    : `http://${process.env.NEXT_PUBLIC_API_BASE_URL}`)
+                                : 'http://localhost:5000';
+                              const secureUrl = `${apiBaseUrl}${doc.accessUrl}`;
+                              
+                              // Fetch with authentication header
+                              const response = await fetch(secureUrl, {
+                                headers: {
+                                  'Authorization': `Bearer ${accessToken}`,
+                                },
+                                credentials: 'include',
+                              });
+                              
+                              if (response.ok) {
+                                // Create blob and open in new window
+                                const blob = await response.blob();
+                                const blobUrl = URL.createObjectURL(blob);
+                                window.open(blobUrl, '_blank');
+                                // Clean up blob URL after a delay
+                                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                              } else {
+                                alert('Failed to access document. Please try again.');
+                              }
+                            } catch (error) {
+                              console.error('Error accessing document:', error);
+                              alert('Failed to access document. Please try again.');
+                            }
+                          }
+                          // If no accessUrl, fallback to legacy URL (for backward compatibility)
+                        }}
                       >
                         Open / Download
                       </a>
                     ) : (
-                      <p className="mt-2 text-sm text-muted">No URL available.</p>
+                      <p className="mt-2 text-sm text-muted">No document available.</p>
                     )}
                   </div>
                 ))}

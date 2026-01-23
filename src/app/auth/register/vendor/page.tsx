@@ -35,10 +35,11 @@ export default function VendorRegisterPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [checkingApplication, setCheckingApplication] = useState(true);
-  const [aadhaarDoc, setAadhaarDoc] = useState<{ url: string; fileName: string } | null>(null);
-  const [aadhaarBackDoc, setAadhaarBackDoc] = useState<{ url: string; fileName: string } | null>(null);
-  const [gstCertDoc, setGstCertDoc] = useState<{ url: string; fileName: string } | null>(null);
-  const [panCardDoc, setPanCardDoc] = useState<{ url: string; fileName: string } | null>(null);
+  // Security: Store filePath (preferred) or url (legacy) for vendor documents
+  const [aadhaarDoc, setAadhaarDoc] = useState<{ url?: string; filePath?: string; fileName: string } | null>(null);
+  const [aadhaarBackDoc, setAadhaarBackDoc] = useState<{ url?: string; filePath?: string; fileName: string } | null>(null);
+  const [gstCertDoc, setGstCertDoc] = useState<{ url?: string; filePath?: string; fileName: string } | null>(null);
+  const [panCardDoc, setPanCardDoc] = useState<{ url?: string; filePath?: string; fileName: string } | null>(null);
   const [uploading, setUploading] = useState<{ aadhaarFront: boolean; aadhaarBack: boolean; gst: boolean; pan: boolean }>({ aadhaarFront: false, aadhaarBack: false, gst: false, pan: false });
 
   // Check if user has a pending vendor application
@@ -162,22 +163,23 @@ export default function VendorRegisterPage() {
       return false;
     }
 
-    if (!aadhaarDoc?.url) {
+    // Security: Check for filePath (preferred) or url (legacy)
+    if (!aadhaarDoc?.filePath && !aadhaarDoc?.url) {
       setError('Please upload your Aadhaar FRONT image (required).');
       return false;
     }
 
-    if (!aadhaarBackDoc?.url) {
+    if (!aadhaarBackDoc?.filePath && !aadhaarBackDoc?.url) {
       setError('Please upload your Aadhaar BACK image (required).');
       return false;
     }
 
-    if (!gstCertDoc?.url) {
+    if (!gstCertDoc?.filePath && !gstCertDoc?.url) {
       setError('Please upload your GST certificate document (required).');
       return false;
     }
 
-    if (!panCardDoc?.url) {
+    if (!panCardDoc?.filePath && !panCardDoc?.url) {
       setError('Please upload your PAN card document (required).');
       return false;
     }
@@ -209,10 +211,31 @@ export default function VendorRegisterPage() {
         aadharNumber: vendorForm.aadharNumber,
         panNumber: vendorForm.panNumber,
         documents: [
-          { type: 'aadhaarFront', url: aadhaarDoc?.url, fileName: aadhaarDoc?.fileName },
-          { type: 'aadhaarBack', url: aadhaarBackDoc?.url, fileName: aadhaarBackDoc?.fileName },
-          { type: 'gstCertificate', url: gstCertDoc?.url, fileName: gstCertDoc?.fileName },
-          { type: 'panCard', url: panCardDoc?.url, fileName: panCardDoc?.fileName },
+          // Security: Prefer filePath over url for secure storage
+          { 
+            type: 'aadhaarFront', 
+            filePath: aadhaarDoc?.filePath, 
+            url: aadhaarDoc?.filePath ? undefined : aadhaarDoc?.url, 
+            fileName: aadhaarDoc?.fileName 
+          },
+          { 
+            type: 'aadhaarBack', 
+            filePath: aadhaarBackDoc?.filePath, 
+            url: aadhaarBackDoc?.filePath ? undefined : aadhaarBackDoc?.url, 
+            fileName: aadhaarBackDoc?.fileName 
+          },
+          { 
+            type: 'gstCertificate', 
+            filePath: gstCertDoc?.filePath, 
+            url: gstCertDoc?.filePath ? undefined : gstCertDoc?.url, 
+            fileName: gstCertDoc?.fileName 
+          },
+          { 
+            type: 'panCard', 
+            filePath: panCardDoc?.filePath, 
+            url: panCardDoc?.filePath ? undefined : panCardDoc?.url, 
+            fileName: panCardDoc?.fileName 
+          },
         ],
       };
 
@@ -421,7 +444,12 @@ export default function VendorRegisterPage() {
                             setError('');
                             setUploading((p) => ({ ...p, aadhaarFront: true }));
                             const res = await uploadVendorApplicationDoc(file);
-                            setAadhaarDoc({ url: res.file.url, fileName: res.file.originalName });
+                            // Security: Store filePath (preferred) or url (legacy fallback)
+                            setAadhaarDoc({ 
+                              filePath: res.file.filePath, 
+                              url: res.file.filePath ? undefined : res.file.url, 
+                              fileName: res.file.originalName 
+                            });
                           } catch (err) {
                             console.error('Aadhaar upload failed', err);
                             setAadhaarDoc(null);
@@ -438,10 +466,10 @@ export default function VendorRegisterPage() {
                       <div className="mt-3 text-xs">
                         {uploading.aadhaarFront ? (
                           <span className="text-muted">Uploading…</span>
-                        ) : aadhaarDoc?.url ? (
-                          <a className="text-primary font-semibold hover:text-primary/80" href={aadhaarDoc.url} target="_blank" rel="noreferrer">
+                        ) : (aadhaarDoc?.filePath || aadhaarDoc?.url) ? (
+                          <span className="text-primary font-semibold">
                             Uploaded: {aadhaarDoc.fileName.slice(0, 20)}...
-                          </a>
+                          </span>
                         ) : (
                           <span className="text-muted">No file uploaded</span>
                         )}
@@ -465,7 +493,11 @@ export default function VendorRegisterPage() {
                             setError('');
                             setUploading((p) => ({ ...p, aadhaarBack: true }));
                             const res = await uploadVendorApplicationDoc(file);
-                            setAadhaarBackDoc({ url: res.file.url, fileName: res.file.originalName });
+                            setAadhaarBackDoc({ 
+                              filePath: res.file.filePath, 
+                              url: res.file.filePath ? undefined : res.file.url, 
+                              fileName: res.file.originalName 
+                            });
                           } catch (err) {
                             console.error('Aadhaar back upload failed', err);
                             setAadhaarBackDoc(null);
@@ -482,10 +514,10 @@ export default function VendorRegisterPage() {
                       <div className="mt-3 text-xs">
                         {uploading.aadhaarBack ? (
                           <span className="text-muted">Uploading…</span>
-                        ) : aadhaarBackDoc?.url ? (
-                          <a className="text-primary font-semibold hover:text-primary/80" href={aadhaarBackDoc.url} target="_blank" rel="noreferrer">
+                        ) : (aadhaarBackDoc?.filePath || aadhaarBackDoc?.url) ? (
+                          <span className="text-primary font-semibold">
                             Uploaded: {aadhaarBackDoc.fileName.slice(0, 20)}...
-                          </a>
+                          </span>
                         ) : (
                           <span className="text-muted">No file uploaded</span>
                         )}
@@ -509,7 +541,11 @@ export default function VendorRegisterPage() {
                             setError('');
                             setUploading((p) => ({ ...p, gst: true }));
                             const res = await uploadVendorApplicationDoc(file);
-                            setGstCertDoc({ url: res.file.url, fileName: res.file.originalName });
+                            setGstCertDoc({ 
+                              filePath: res.file.filePath, 
+                              url: res.file.filePath ? undefined : res.file.url, 
+                              fileName: res.file.originalName 
+                            });
                           } catch (err) {
                             console.error('GST certificate upload failed', err);
                             setGstCertDoc(null);
@@ -526,10 +562,10 @@ export default function VendorRegisterPage() {
                       <div className="mt-3 text-xs">
                         {uploading.gst ? (
                           <span className="text-muted">Uploading…</span>
-                        ) : gstCertDoc?.url ? (
-                          <a className="text-primary font-semibold hover:text-primary/80" href={gstCertDoc.url} target="_blank" rel="noreferrer">
+                        ) : (gstCertDoc?.filePath || gstCertDoc?.url) ? (
+                          <span className="text-primary font-semibold">
                             Uploaded: {gstCertDoc.fileName.slice(0, 20)}...
-                          </a>
+                          </span>
                         ) : (
                           <span className="text-muted">No file uploaded</span>
                         )}
@@ -553,7 +589,11 @@ export default function VendorRegisterPage() {
                             setError('');
                             setUploading((p) => ({ ...p, pan: true }));
                             const res = await uploadVendorApplicationDoc(file);
-                            setPanCardDoc({ url: res.file.url, fileName: res.file.originalName });
+                            setPanCardDoc({ 
+                              filePath: res.file.filePath, 
+                              url: res.file.filePath ? undefined : res.file.url, 
+                              fileName: res.file.originalName 
+                            });
                           } catch (err) {
                             console.error('PAN card upload failed', err);
                             setPanCardDoc(null);
@@ -570,15 +610,10 @@ export default function VendorRegisterPage() {
                       <div className="mt-3 text-xs">
                         {uploading.pan ? (
                           <span className="text-muted">Uploading…</span>
-                        ) : panCardDoc?.url ? (
-                          <a
-                            className="text-primary font-semibold hover:text-primary/80"
-                            href={panCardDoc.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
+                        ) : (panCardDoc?.filePath || panCardDoc?.url) ? (
+                          <span className="text-primary font-semibold">
                             Uploaded: {panCardDoc.fileName.slice(0, 20)}...
-                          </a>
+                          </span>
                         ) : (
                           <span className="text-muted">No file uploaded</span>
                         )}

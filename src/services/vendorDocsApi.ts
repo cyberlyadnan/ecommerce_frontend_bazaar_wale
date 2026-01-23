@@ -7,7 +7,8 @@ export type UploadedFile = {
   originalName: string;
   mimeType: string;
   size: number;
-  url: string;
+  url?: string; // Legacy - for non-vendor documents
+  filePath?: string; // Secure storage path (preferred for vendor documents)
 };
 
 export const uploadVendorApplicationDoc = (file: File) => {
