@@ -127,13 +127,13 @@ export function Footer() {
             {/* Contact Info */}
             <div className="space-y-3">
               <a 
-                href="mailto:support@b2bcommerce.com" 
+                href="mailto:bazaarwaleofficial@gmail.com" 
                 className="flex items-center gap-3 text-muted hover:text-primary transition-colors group"
               >
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Mail className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-sm">support@b2bcommerce.com</span>
+                <span className="text-sm">bazaarwaleofficial@gmail.com</span>
               </a>
               
               <a 
@@ -143,14 +143,14 @@ export function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Phone className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-sm">+1 (234) 567-890</span>
+                <span className="text-sm">+91 88269 20195</span>
               </a>
               
               <div className="flex items-start gap-3 text-muted">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-sm">123 Business Street, Suite 100<br />New York, NY 10001</span>
+                <span className="text-sm">Gali No. 5, Ambedkar Basti, Maujpur, <br />Seelampur North East Delhi-110053</span>
               </div>
             </div>
           </div>

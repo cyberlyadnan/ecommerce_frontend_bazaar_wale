@@ -89,10 +89,10 @@ export default function ContactPage() {
                 <h3 className="text-lg font-semibold text-foreground mb-2">Email Us</h3>
                 <p className="text-sm text-muted mb-3">Send us an email anytime</p>
                 <a
-                  href="mailto:support@ecommerceb2b.com"
+                  href="mailto:bazaarwaleofficial@gmail.com"
                   className="text-primary hover:text-primary/80 font-medium text-sm inline-flex items-center gap-1 group-hover:gap-2 transition-all"
                 >
-                  support@ecommerceb2b.com
+                  bazaarwaleofficial@gmail.com
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -108,10 +108,10 @@ export default function ContactPage() {
                 <h3 className="text-lg font-semibold text-foreground mb-2">Call Us</h3>
                 <p className="text-sm text-muted mb-3">Mon-Fri, 9AM-6PM IST</p>
                 <a
-                  href="tel:+911234567890"
+                  href="tel:+918826920195"
                   className="text-secondary hover:text-secondary/80 font-medium text-sm inline-flex items-center gap-1 group-hover:gap-2 transition-all"
                 >
-                  +91 123 456 7890
+                  +91 88269 20195
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -127,9 +127,7 @@ export default function ContactPage() {
                 <h3 className="text-lg font-semibold text-foreground mb-2">Visit Us</h3>
                 <p className="text-sm text-muted mb-3">Our office location</p>
                 <p className="text-foreground/70 font-medium text-sm">
-                  123 Business Street
-                  <br />
-                  Industrial Area, City
+                  Gali No. 5, Ambedkar Basti, Maujpur, <br />Seelampur North East Delhi-110053
                 </p>
               </div>
             </div>
