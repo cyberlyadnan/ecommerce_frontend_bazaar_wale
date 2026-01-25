@@ -249,7 +249,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
         {/* Product Details Tabs */}
         <div className="mt-12 bg-surface rounded-lg border border-border overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
             <div className="p-6">
               <h3 className="font-semibold text-foreground mb-4">Description</h3>
               <p className="text-sm text-foreground/70 leading-relaxed">
@@ -273,7 +273,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </dl>
             </div>
             
-            <div className="p-6">
+            {/* <div className="p-6">
               <h3 className="font-semibold text-foreground mb-4">Care Instructions</h3>
               <ul className="space-y-2">
                 {careInstructions.length > 0 ? (
@@ -287,7 +287,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   <li className="text-sm text-foreground/60">Standard handling applies.</li>
                 )}
               </ul>
-            </div>
+            </div> */}
             
           </div>
         </div>
