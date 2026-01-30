@@ -5,14 +5,26 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Search, Filter, X, SlidersHorizontal, Grid3x3, List, ChevronDown, Star, StarHalf, Package } from 'lucide-react';
-import { fetchPublicProducts, type ProductDto } from '@/services/catalogApi';
+import { fetchPublicProducts, type ProductDto, type PricingTierDto } from '@/services/catalogApi';
 import ProductCard from '@/components/shared/ProductCard';
 import { AddToCartButton } from '@/components/shared/AddToCartButton';
 import { FavoriteButton } from '@/components/shared/FavoriteButton';
 import { formatCurrency, resolveProductImage } from '@/utils/currency';
 import { Loader2 } from 'lucide-react';
+import { Pagination } from '@/components/shared/Pagination';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'rating' | 'name';
+
+/** Get display price (starting from) - tier at lowest minQty or base price */
+function getProductDisplayPrice(product: ProductDto): number {
+  if (product.pricingTiers?.length) {
+    const sorted = [...product.pricingTiers].sort((a: PricingTierDto, b: PricingTierDto) => a.minQty - b.minQty);
+    return sorted[0]?.pricePerUnit ?? product.price;
+  }
+  return product.price;
+}
+
+const PAGE_SIZE = 12;
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -33,6 +45,7 @@ export default function ProductsPage() {
   );
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(1);
 
   // Debounce search
   useEffect(() => {
@@ -78,16 +91,13 @@ export default function ProductsPage() {
     loadProducts();
   }, [debouncedSearch]);
 
-  // Calculate price range from products
+  // Calculate price range from products (use consistent getProductDisplayPrice)
   const priceRangeData = useMemo(() => {
     if (products.length === 0) return { min: 0, max: 0 };
-    const prices = products.map((p) => {
-      const tierPrice = p.pricingTiers?.[0]?.pricePerUnit;
-      return tierPrice || p.price;
-    });
+    const prices = products.map((p) => getProductDisplayPrice(p));
     return {
-      min: Math.min(...prices),
-      max: Math.max(...prices),
+      min: Math.floor(Math.min(...prices)),
+      max: Math.ceil(Math.max(...prices)),
     };
   }, [products]);
 
@@ -104,26 +114,24 @@ export default function ProductsPage() {
       );
     }
 
-    // Filter by price range
+    // Filter by price range (use consistent price extraction, ensure min <= max)
     if (priceRange) {
+      const [minVal, maxVal] = priceRange[0] <= priceRange[1]
+        ? [priceRange[0], priceRange[1]]
+        : [priceRange[1], priceRange[0]];
       filtered = filtered.filter((product) => {
-        const tierPrice = product.pricingTiers?.[0]?.pricePerUnit;
-        const currentPrice = tierPrice || product.price;
-        return currentPrice >= priceRange[0] && currentPrice <= priceRange[1];
+        const currentPrice = getProductDisplayPrice(product);
+        return currentPrice >= minVal && currentPrice <= maxVal;
       });
     }
 
-    // Sort products
+    // Sort products (use consistent price extraction)
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          const priceA = a.pricingTiers?.[0]?.pricePerUnit || a.price;
-          const priceB = b.pricingTiers?.[0]?.pricePerUnit || b.price;
-          return priceA - priceB;
+          return getProductDisplayPrice(a) - getProductDisplayPrice(b);
         case 'price-high':
-          const priceAHigh = a.pricingTiers?.[0]?.pricePerUnit || a.price;
-          const priceBHigh = b.pricingTiers?.[0]?.pricePerUnit || b.price;
-          return priceBHigh - priceAHigh;
+          return getProductDisplayPrice(b) - getProductDisplayPrice(a);
         case 'rating':
           const ratingA = (a.meta?.averageRating as number) || 0;
           const ratingB = (b.meta?.averageRating as number) || 0;
@@ -165,7 +173,12 @@ export default function ProductsPage() {
     setSelectedCategory(null);
     setPriceRange(null);
     setSortBy('newest');
+    setPage(1);
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, priceRange, sortBy, debouncedSearch]);
 
   const hasActiveFilters = searchTerm || selectedCategory || priceRange || sortBy !== 'newest';
 
@@ -343,39 +356,47 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        placeholder={`Min (${formatCurrency(priceRangeData.min)})`}
-                        value={priceRange?.[0] || ''}
+                        placeholder={`Min ₹${priceRangeData.min}`}
+                        value={priceRange != null ? priceRange[0] : ''}
                         onChange={(e) => {
-                          const min = e.target.value ? Number(e.target.value) : priceRangeData.min;
-                          setPriceRange([
-                            min,
-                            priceRange?.[1] || priceRangeData.max,
-                          ]);
+                          const raw = e.target.value;
+                          const min = raw === '' ? priceRangeData.min : Number(raw);
+                          const other = priceRange?.[1] ?? priceRangeData.max;
+                          setPriceRange([min, other]);
+                          setPage(1);
                         }}
                         min={priceRangeData.min}
                         max={priceRangeData.max}
+                        step={1}
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
-                      <span className="text-foreground/60">to</span>
+                      <span className="text-foreground/60 shrink-0">to</span>
                       <input
                         type="number"
-                        placeholder={`Max (${formatCurrency(priceRangeData.max)})`}
-                        value={priceRange?.[1] || ''}
+                        placeholder={`Max ₹${priceRangeData.max}`}
+                        value={priceRange != null ? priceRange[1] : ''}
                         onChange={(e) => {
-                          const max = e.target.value ? Number(e.target.value) : priceRangeData.max;
-                          setPriceRange([
-                            priceRange?.[0] || priceRangeData.min,
-                            max,
-                          ]);
+                          const raw = e.target.value;
+                          const max = raw === '' ? priceRangeData.max : Number(raw);
+                          const other = priceRange?.[0] ?? priceRangeData.min;
+                          setPriceRange([other, max]);
+                          setPage(1);
                         }}
                         min={priceRangeData.min}
                         max={priceRangeData.max}
+                        step={1}
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
+                    <p className="text-xs text-foreground/60">
+                      Enter min and/or max, or leave empty for no limit
+                    </p>
                     {priceRange && (
                       <button
-                        onClick={() => setPriceRange(null)}
+                        onClick={() => {
+                          setPriceRange(null);
+                          setPage(1);
+                        }}
                         className="w-full px-3 py-1.5 text-xs text-foreground/70 hover:text-foreground hover:bg-muted rounded-lg transition"
                       >
                         Clear Price Filter
@@ -428,9 +449,17 @@ export default function ProductsPage() {
             ) : (
               <>
                 {/* Results Count */}
-                <div className="mb-6">
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <p className="text-sm text-foreground/60">
                     Showing <span className="font-semibold text-foreground">
+                      {Math.min((page - 1) * PAGE_SIZE + 1, filteredAndSortedProducts.length)}
+                    </span>
+                    -
+                    <span className="font-semibold text-foreground">
+                      {Math.min(page * PAGE_SIZE, filteredAndSortedProducts.length)}
+                    </span>
+                    {' of '}
+                    <span className="font-semibold text-foreground">
                       {filteredAndSortedProducts.length}
                     </span>{' '}
                     {filteredAndSortedProducts.length === 1 ? 'product' : 'products'}
@@ -440,23 +469,26 @@ export default function ProductsPage() {
                 {/* Products Grid */}
                 {viewMode === 'grid' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredAndSortedProducts.map((product) => (
+                    {filteredAndSortedProducts
+                      .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+                      .map((product) => (
                       <ProductCard key={product._id} product={product} />
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-3 sm:space-y-4">
-                    {filteredAndSortedProducts.map((product) => {
+                    {filteredAndSortedProducts
+                      .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+                      .map((product) => {
                       const averageRating = typeof product.meta?.averageRating === 'number'
                         ? product.meta.averageRating as number
                         : 0;
                       const totalReviews = typeof product.meta?.totalReviews === 'number'
                         ? product.meta.totalReviews as number
                         : 0;
-                      const tierPrice = product.pricingTiers?.[0]?.pricePerUnit;
-                      const currentPrice = tierPrice || product.price;
-                      const discountPercentage = tierPrice && tierPrice < product.price
-                        ? Math.round(((product.price - tierPrice) / product.price) * 100)
+                      const currentPrice = getProductDisplayPrice(product);
+                      const discountPercentage = product.pricingTiers?.length && currentPrice < product.price
+                        ? Math.round(((product.price - currentPrice) / product.price) * 100)
                         : null;
 
                       const renderStars = (rating: number) => {
@@ -570,7 +602,7 @@ export default function ProductsPage() {
                                       <span className="text-2xl sm:text-3xl font-bold text-primary">
                                         {formatCurrency(currentPrice)}
                                       </span>
-                                      {tierPrice && tierPrice < product.price && (
+                                      {product.pricingTiers?.length && currentPrice < product.price && (
                                         <span className="text-sm sm:text-base text-foreground/50 line-through">
                                           {formatCurrency(product.price)}
                                         </span>
@@ -604,6 +636,19 @@ export default function ProductsPage() {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {filteredAndSortedProducts.length > PAGE_SIZE && (
+                  <div className="mt-8">
+                    <Pagination
+                      page={page}
+                      totalPages={Math.ceil(filteredAndSortedProducts.length / PAGE_SIZE)}
+                      total={filteredAndSortedProducts.length}
+                      limit={PAGE_SIZE}
+                      onPageChange={setPage}
+                    />
                   </div>
                 )}
               </>
