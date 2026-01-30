@@ -81,7 +81,7 @@ export default function AboutPage() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-border/50">
                 <Image
-                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=800&fit=crop&q=80"
+                  src="https://thumbs.dreamstime.com/b/business-strategy-collaboration-b-e-commerce-emphasis-sales-techniques-agreements-supplier-relationships-visual-405351584.jpg"
                   alt="Business mission"
                   width={600}
                   height={400}
@@ -262,9 +262,9 @@ export default function AboutPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {[
-              { value: '10K+', label: 'Verified Suppliers', icon: Shield },
-              { value: '500K+', label: 'Active Products', icon: Award },
-              { value: '50K+', label: 'Business Customers', icon: Users },
+              { value: '20+', label: 'Verified Suppliers', icon: Shield },
+              { value: '50+', label: 'Active Products', icon: Award },
+              { value: '100+', label: 'Business Customers', icon: Users },
               { value: '99.9%', label: 'Satisfaction Rate', icon: TrendingUp },
             ].map((stat, index) => {
               const IconComponent = stat.icon;
@@ -337,7 +337,7 @@ export default function AboutPage() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-border/50">
                 <Image
-                  src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=800&fit=crop&q=80"
+                  src="https://t4.ftcdn.net/jpg/06/04/76/33/360_F_604763387_iHshS2pHBV3JA0L909nFnSIEazs2GUfV.jpg"
                   alt="Future vision"
                   width={600}
                   height={400}

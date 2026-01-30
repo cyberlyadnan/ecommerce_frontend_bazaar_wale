@@ -57,10 +57,10 @@ export function Footer() {
   };
 
   const socialLinks = [
-    { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
-    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
-    { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
+    { icon: Facebook, href: 'https://www.facebook.com/share/17GZuKfv4d/', label: 'Facebook' },
+    // { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+    { icon: Instagram, href: 'https://www.instagram.com/bazaarwaleofficial?igsh=Yjk5OTZsdWtxcDhz', label: 'Instagram' },
+    // { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
   ];
 
   const features = [
@@ -118,7 +118,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block">
-              <div className="relative w-40 h-20 sm:w-32 sm:h-20 md:w-40 md:h-28">
+              <div className="relative w-40 h-28 sm:w-32 sm:h-20 md:w-40 md:h-28">
                 <Image
                   src="/logo.png"
                   alt="Bazaarwale"

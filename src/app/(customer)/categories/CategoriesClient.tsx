@@ -96,7 +96,7 @@ export function CategoriesClient({
   return (
     <>
       {/* Search and Controls */}
-      <div className="sticky top-[40px] md:top-[20px] z-50 isolate bg-surface/95 backdrop-blur-md border border-border/50 rounded-2xl shadow-lg mb-8">
+      <div className="sticky top-[3px] md:top-[20px] z-50 isolate bg-surface/95 backdrop-blur-md border border-border/50 rounded-2xl shadow-lg mb-8">
         <div className="p-4 md:p-6">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             {/* Search */}

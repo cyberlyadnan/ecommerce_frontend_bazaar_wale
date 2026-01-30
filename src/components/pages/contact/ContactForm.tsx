@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { ValidationChecklist } from '@/components/shared/ValidationChecklist';
 import { isValidPhone } from '@/utils/validation';
 
 interface ContactFormData {
@@ -11,6 +10,14 @@ interface ContactFormData {
   phone: string;
   subject: string;
   message: string;
+}
+
+interface FieldErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  subject?: string;
+  message?: string;
 }
 
 export function ContactForm() {
@@ -23,18 +30,7 @@ export function ContactForm() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-
-  const contactChecklist = [
-    { label: 'Name (min 2 characters)', met: formData.name.trim().length >= 2 },
-    { label: 'Valid email address', met: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim()) },
-    {
-      label: 'Phone (optional, 10-digit Indian or international)',
-      met: !formData.phone.trim() || isValidPhone(formData.phone),
-    },
-    { label: 'Subject (min 3 characters)', met: formData.subject.trim().length >= 3 },
-    { label: 'Message (min 10 characters)', met: formData.message.trim().length >= 10 },
-  ];
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -42,26 +38,44 @@ export function ContactForm() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (message) setMessage(null);
-    if (name === 'phone') setPhoneError(null);
+    if (fieldErrors[name as keyof FieldErrors]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
-  const handlePhoneBlur = () => {
-    if (formData.phone.trim() && !isValidPhone(formData.phone)) {
-      setPhoneError('Enter a valid 10-digit Indian number (e.g. 98765 43210) or international format');
-    } else {
-      setPhoneError(null);
+  const validate = (): boolean => {
+    const errors: FieldErrors = {};
+    if (formData.name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters';
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+    if (formData.phone.trim() && !isValidPhone(formData.phone)) {
+      errors.phone = 'Enter a valid 10-digit Indian number (e.g. 98765 43210) or international format';
+    }
+    if (formData.subject.trim().length < 3) {
+      errors.subject = 'Subject must be at least 3 characters';
+    }
+    if (formData.message.trim().length < 10) {
+      errors.message = 'Message must be at least 10 characters';
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formData.phone.trim() && !isValidPhone(formData.phone)) {
-      setPhoneError('Enter a valid phone number');
+    if (!validate()) {
+      setMessage({
+        type: 'error',
+        text: 'Please correct the errors below and try again.',
+      });
       return;
     }
-    setPhoneError(null);
-    setIsSubmitting(true);
+    setFieldErrors({});
     setMessage(null);
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/contact', {
@@ -135,9 +149,14 @@ export function ContactForm() {
             maxLength={100}
             value={formData.name}
             onChange={handleChange}
-            className="w-full rounded-xl border border-border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className={`w-full rounded-xl border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all ${
+              fieldErrors.name ? 'border-destructive' : 'border-border focus:border-primary'
+            }`}
             placeholder="John Doe"
           />
+          {fieldErrors.name && (
+            <p className="mt-1.5 text-sm text-destructive">{fieldErrors.name}</p>
+          )}
         </div>
 
         <div>
@@ -151,9 +170,14 @@ export function ContactForm() {
             required
             value={formData.email}
             onChange={handleChange}
-            className="w-full rounded-xl border border-border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className={`w-full rounded-xl border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all ${
+              fieldErrors.email ? 'border-destructive' : 'border-border focus:border-primary'
+            }`}
             placeholder="john@example.com"
           />
+          {fieldErrors.email && (
+            <p className="mt-1.5 text-sm text-destructive">{fieldErrors.email}</p>
+          )}
         </div>
       </div>
 
@@ -168,14 +192,13 @@ export function ContactForm() {
           maxLength={20}
           value={formData.phone}
           onChange={handleChange}
-          onBlur={handlePhoneBlur}
           className={`w-full rounded-xl border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all ${
-            phoneError ? 'border-destructive' : 'border-border focus:border-primary'
+            fieldErrors.phone ? 'border-destructive' : 'border-border focus:border-primary'
           }`}
           placeholder="+91 98765 43210"
         />
-        {phoneError && (
-          <p className="mt-1.5 text-sm text-destructive">{phoneError}</p>
+        {fieldErrors.phone && (
+          <p className="mt-1.5 text-sm text-destructive">{fieldErrors.phone}</p>
         )}
       </div>
 
@@ -192,9 +215,14 @@ export function ContactForm() {
           maxLength={200}
           value={formData.subject}
           onChange={handleChange}
-          className="w-full rounded-xl border border-border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+          className={`w-full rounded-xl border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all ${
+            fieldErrors.subject ? 'border-destructive' : 'border-border focus:border-primary'
+          }`}
           placeholder="What is your inquiry about?"
         />
+        {fieldErrors.subject && (
+          <p className="mt-1.5 text-sm text-destructive">{fieldErrors.subject}</p>
+        )}
       </div>
 
       <div>
@@ -210,19 +238,17 @@ export function ContactForm() {
           rows={6}
           value={formData.message}
           onChange={handleChange}
-          className="w-full rounded-xl border border-border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
+          className={`w-full rounded-xl border bg-background/50 backdrop-blur-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all ${
+            fieldErrors.message ? 'border-destructive' : 'border-border focus:border-primary'
+          }`}
           placeholder="Please provide details about your inquiry..."
         />
+        {fieldErrors.message && (
+          <p className="mt-1.5 text-sm text-destructive">{fieldErrors.message}</p>
+        )}
         <p className="text-xs text-muted mt-2">
           {formData.message.length}/5000 characters
         </p>
-      </div>
-
-      <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
-        <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-          Form checklist
-        </p>
-        <ValidationChecklist items={contactChecklist} />
       </div>
 
       <button

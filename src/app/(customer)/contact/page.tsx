@@ -157,7 +157,7 @@ export default function ContactPage() {
       </section>
 
       {/* Main Contact Section */}
-      <section className="relative py-16 md:py-24 overflow-hidden">
+      <section className="relative py-4 md:py-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
             {/* Contact Information Sidebar */}

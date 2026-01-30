@@ -315,12 +315,14 @@ export default function RegisterPage() {
                   minLength={8}
                   required
                 />
-                <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
-                    Password requirements
-                  </p>
-                  <PasswordStrength password={customerForm.password} />
-                </div>
+                {customerForm.password.length > 0 && (
+                  <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                      Password requirements
+                    </p>
+                    <PasswordStrength password={customerForm.password} />
+                  </div>
+                )}
               </div>
 
               <label className="flex items-start cursor-pointer gap-3 p-4 bg-background rounded-xl border-2 border-border hover:border-primary/50 transition-colors">

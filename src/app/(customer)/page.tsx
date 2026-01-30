@@ -185,9 +185,9 @@ export default async function CustomerHomePage() {
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { value: '10K+', label: 'Verified Vendors', icon: Users },
-              { value: '500K+', label: 'Products', icon: Package },
-              { value: '150+', label: 'Countries', icon: Globe },
+              { value: '20+', label: 'Verified Vendors', icon: Users },
+              { value: '50+', label: 'Products', icon: Package },
+              { value: '1', label: 'Countries', icon: Globe },
               { value: '99.9%', label: 'Uptime', icon: Clock },
             ].map((stat, index) => {
               const Icon = stat.icon;

@@ -101,16 +101,18 @@ export default function ResetPasswordPage() {
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 minLength={8}
               />
-              <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
-                  Password requirements
-                </p>
-                <PasswordStrength
-                  password={password}
-                  confirmPassword={confirmPassword}
-                  showConfirm
-                />
-              </div>
+              {(password.length > 0 || confirmPassword.length > 0) && (
+                <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                    Password requirements
+                  </p>
+                  <PasswordStrength
+                    password={password}
+                    confirmPassword={confirmPassword}
+                    showConfirm
+                  />
+                </div>
+              )}
             </div>
 
             <div>
