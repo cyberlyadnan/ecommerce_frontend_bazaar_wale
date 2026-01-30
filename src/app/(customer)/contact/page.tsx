@@ -6,7 +6,6 @@ import {
   MapPin,
   Clock,
   MessageSquare,
-  Headphones,
   Globe,
   Sparkles,
   Send,
@@ -16,6 +15,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { ContactForm } from '@/components/pages/contact/ContactForm';
 
 export const metadata: Metadata = {
@@ -132,21 +132,26 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Support Card */}
-            <div className="group relative bg-surface/80 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Support Card - WhatsApp */}
+            <a
+              href="https://wa.me/918826920195"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative bg-surface/80 backdrop-blur-xl rounded-2xl p-6 border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 block"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#25D366]/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/10 mb-4 group-hover:scale-110 transition-transform">
-                  <Headphones className="w-7 h-7 text-secondary" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[#25D366]/20 mb-4 group-hover:scale-110 transition-transform">
+                  <FaWhatsapp className="w-8 h-8 text-[#25D366]" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">24/7 Support</h3>
-                <p className="text-sm text-muted mb-3">We're always here to help</p>
+                <p className="text-sm text-muted mb-3">We&apos;re always here to help</p>
                 <span className="text-foreground/70 font-medium text-sm inline-flex items-center gap-1">
                   Live Chat Available
-                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  <ArrowRight className="w-4 h-4 text-[#25D366]" />
                 </span>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </section>

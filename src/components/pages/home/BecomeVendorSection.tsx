@@ -74,7 +74,7 @@ export default function BecomeVendorSection() {
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link
-                  href="/vendor/dashboard"
+                  href="/about"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface text-primary border-2 border-primary rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                 >
                   Learn More

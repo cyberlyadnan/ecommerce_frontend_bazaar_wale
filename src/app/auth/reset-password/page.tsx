@@ -5,8 +5,10 @@ import { FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { GuestGuard } from '@/components/auth/GuestGuard';
+import { PasswordStrength } from '@/components/auth/PasswordStrength';
 import { ApiClientError } from '@/lib/apiClient';
 import { resetPasswordWithToken } from '@/services/authApi';
+import { isPasswordAcceptable } from '@/utils/validation';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -31,8 +33,8 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (!isPasswordAcceptable(password)) {
+      setError('Password must be at least 8 characters and include a number or special character.');
       return;
     }
 
@@ -97,8 +99,18 @@ export default function ResetPasswordPage() {
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                minLength={6}
+                minLength={8}
               />
+              <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                  Password requirements
+                </p>
+                <PasswordStrength
+                  password={password}
+                  confirmPassword={confirmPassword}
+                  showConfirm
+                />
+              </div>
             </div>
 
             <div>
@@ -111,7 +123,7 @@ export default function ResetPasswordPage() {
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                minLength={6}
+                minLength={8}
               />
             </div>
 

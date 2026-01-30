@@ -5,6 +5,7 @@ import { CalendarRange, Wallet, Receipt, Loader2, Search, CheckCircle2, Clock, X
 
 import { useAppSelector } from '@/store/redux/store';
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import { vendorListPayouts, vendorPaymentsSummary, type PayoutDto, type PayoutStatus } from '@/services/paymentsApi';
 
 const formatCurrency = (value: number) =>
@@ -41,6 +42,9 @@ export default function VendorPaymentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<{ totalPaid: number; totalPending: number; lifetimeGross: number; lifetimeCommission: number } | null>(null);
   const [payouts, setPayouts] = useState<PayoutDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   const statusParam = useMemo(() => (tab === 'all' ? 'all' : tab), [tab]);
 
@@ -51,7 +55,10 @@ export default function VendorPaymentsPage() {
       setError(null);
       const [sum, list] = await Promise.all([
         vendorPaymentsSummary(accessToken),
-        vendorListPayouts(accessToken, statusParam as any),
+        vendorListPayouts(accessToken, statusParam as any, {
+          limit: PAGE_SIZE,
+          skip: (page - 1) * PAGE_SIZE,
+        }),
       ]);
       setSummary(sum.summary);
       const items = list.payouts || [];
@@ -61,6 +68,7 @@ export default function VendorPaymentsPage() {
           ? items.filter((p) => (p.paymentReference || '').toLowerCase().includes(term) || (p.adminNotes || '').toLowerCase().includes(term))
           : items,
       );
+      setTotal(list.total ?? 0);
     } catch (e) {
       console.error('Failed to load vendor payments:', e);
       setError(e instanceof ApiClientError ? e.message : 'Failed to load payments.');
@@ -72,7 +80,11 @@ export default function VendorPaymentsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, statusParam]);
+  }, [accessToken, statusParam, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusParam]);
 
   return (
     <div className="space-y-6">
@@ -210,6 +222,16 @@ export default function VendorPaymentsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {payouts.length > 0 && (
+          <Pagination
+            page={page}
+            totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+            total={total}
+            limit={PAGE_SIZE}
+            onPageChange={setPage}
+            loading={loading}
+          />
         )}
       </section>
     </div>

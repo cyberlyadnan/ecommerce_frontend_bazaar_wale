@@ -5,6 +5,7 @@ import { Loader2, Save, Plus, Search, CheckCircle2, Clock, XCircle } from 'lucid
 
 import { useAppSelector } from '@/store/redux/store';
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import {
   adminCreatePayout,
   adminListPayouts,
@@ -57,6 +58,9 @@ export default function AdminPaymentsPage() {
   const [savingCommission, setSavingCommission] = useState(false);
 
   const [payouts, setPayouts] = useState<PayoutDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   // simple create payout form (manual)
   const [creating, setCreating] = useState(false);
@@ -71,17 +75,24 @@ export default function AdminPaymentsPage() {
     return tab;
   }, [tab]);
 
-  const load = async () => {
+  const load = async (pageOverride?: number) => {
     if (!accessToken) return;
+    const p = pageOverride ?? page;
     try {
       setLoading(true);
       setError(null);
       const [comm, list] = await Promise.all([
         getAdminCommission(accessToken),
-        adminListPayouts(accessToken, { status: statusParam as any, search: search.trim() || undefined }),
+        adminListPayouts(accessToken, {
+          status: statusParam as any,
+          search: search.trim() || undefined,
+          limit: PAGE_SIZE,
+          skip: (p - 1) * PAGE_SIZE,
+        }),
       ]);
       setCommissionPercent(comm.commissionPercent ?? 0);
       setPayouts(list.payouts || []);
+      setTotal(list.total ?? 0);
     } catch (e) {
       console.error('Failed to load admin payments:', e);
       setError(e instanceof ApiClientError ? e.message : 'Failed to load payments.');
@@ -92,8 +103,11 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, statusParam]);
+  }, [accessToken, statusParam, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusParam]);
 
   const saveCommission = async () => {
     if (!accessToken) return;
@@ -285,7 +299,10 @@ export default function AdminPaymentsPage() {
             </div>
 
             <button
-              onClick={load}
+              onClick={() => {
+                setPage(1);
+                load(1);
+              }}
               className="rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold text-muted hover:text-foreground hover:border-foreground/40 transition"
             >
               Refresh
@@ -351,6 +368,16 @@ export default function AdminPaymentsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {payouts.length > 0 && (
+          <Pagination
+            page={page}
+            totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+            total={total}
+            limit={PAGE_SIZE}
+            onPageChange={setPage}
+            loading={loading}
+          />
         )}
       </section>
     </div>

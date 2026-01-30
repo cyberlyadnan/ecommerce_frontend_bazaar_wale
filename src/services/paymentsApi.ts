@@ -43,15 +43,16 @@ export const updateAdminCommission = (commissionPercent: number, accessToken: st
 
 export const adminListPayouts = (
   accessToken: string,
-  params?: { status?: 'all' | PayoutStatus; vendorId?: string; search?: string },
+  params?: { status?: 'all' | PayoutStatus; vendorId?: string; search?: string; limit?: number; skip?: number },
 ) => {
   const qs = new URLSearchParams();
   if (params?.status) qs.set('status', params.status);
   if (params?.vendorId) qs.set('vendorId', params.vendorId);
   if (params?.search) qs.set('search', params.search);
+  if (params?.limit) qs.set('limit', String(params.limit));
+  if (params?.skip) qs.set('skip', String(params.skip));
   const url = `/api/payments/admin/payouts${qs.toString() ? `?${qs.toString()}` : ''}`;
-
-  return apiClient<{ success: boolean; payouts: PayoutDto[] }>(url, {
+  return apiClient<{ success: boolean; payouts: PayoutDto[]; total: number }>(url, {
     method: 'GET',
     accessToken,
   });
@@ -103,11 +104,20 @@ export const vendorPaymentsSummary = (accessToken: string) =>
     accessToken,
   });
 
-export const vendorListPayouts = (accessToken: string, status?: 'all' | PayoutStatus) => {
+export const vendorListPayouts = (
+  accessToken: string,
+  status?: 'all' | PayoutStatus,
+  options?: { limit?: number; skip?: number },
+) => {
   const qs = new URLSearchParams();
   if (status) qs.set('status', status);
+  if (options?.limit) qs.set('limit', String(options.limit));
+  if (options?.skip) qs.set('skip', String(options.skip));
   const url = `/api/payments/vendor/payouts${qs.toString() ? `?${qs.toString()}` : ''}`;
-  return apiClient<{ success: boolean; payouts: PayoutDto[] }>(url, { method: 'GET', accessToken });
+  return apiClient<{ success: boolean; payouts: PayoutDto[]; total: number }>(url, {
+    method: 'GET',
+    accessToken,
+  });
 };
 
 

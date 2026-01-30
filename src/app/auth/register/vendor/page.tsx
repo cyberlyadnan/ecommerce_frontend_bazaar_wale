@@ -5,7 +5,9 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { GuestGuard } from '@/components/auth/GuestGuard';
+import { PasswordStrength } from '@/components/auth/PasswordStrength';
 import { ApiClientError } from '@/lib/apiClient';
+import { isPasswordAcceptable } from '@/utils/validation';
 import { registerVendor, getVendorApplicationStatus } from '@/services/authApi';
 import { uploadVendorApplicationDoc } from '@/services/vendorDocsApi';
 import { setLoading } from '@/store/redux/slices/authSlice';
@@ -131,10 +133,10 @@ export default function VendorRegisterPage() {
         return false;
       }
 
-      // if (!password || password.length < 6) {
-      //   setError('Password must be at least 6 characters long.');
-      //   return false;
-      // }
+      if (!password || !isPasswordAcceptable(password)) {
+        setError('Password must be at least 8 characters and include a number or special character.');
+        return false;
+      }
     } else {
       // If logged in, name should already be set from user data
       if (!name.trim()) {
@@ -633,9 +635,15 @@ export default function VendorRegisterPage() {
                     onChange={(event) => handleVendorChange('password', event.target.value)}
                     placeholder="••••••••"
                     className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    minLength={6}
+                    minLength={8}
                     required
                   />
+                  <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                      Password requirements
+                    </p>
+                    <PasswordStrength password={vendorForm.password} />
+                  </div>
                 </div>
               )}
               {isLoggedIn && (

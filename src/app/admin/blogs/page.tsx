@@ -5,8 +5,11 @@ import { useEffect, useState } from 'react';
 import { BarChart3, Pencil, Plus, RefreshCcw } from 'lucide-react';
 
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import { useAppSelector } from '@/store/redux/store';
 import { BlogDto, adminFetchBlogs, adminFetchBlogStats, BlogStatsDto } from '@/services/blogApi';
+
+const PAGE_SIZE = 20;
 
 export default function AdminBlogsPage() {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
@@ -16,6 +19,9 @@ export default function AdminBlogsPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'all' | 'draft' | 'published'>('all');
   const [search, setSearch] = useState('');
+  const [searchApplied, setSearchApplied] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const load = async () => {
     if (!accessToken) return;
@@ -23,10 +29,11 @@ export default function AdminBlogsPage() {
     setError(null);
     try {
       const [list, stat] = await Promise.all([
-        adminFetchBlogs(accessToken, { status, search, page: 1, limit: 30 }),
+        adminFetchBlogs(accessToken, { status, search: searchApplied || undefined, page, limit: PAGE_SIZE }),
         adminFetchBlogStats(accessToken),
       ]);
       setBlogs(list.items);
+      setTotal(list.total);
       setStats(stat.stats);
     } catch (e) {
       setError(e instanceof ApiClientError ? e.message : 'Failed to load blogs.');
@@ -38,7 +45,11 @@ export default function AdminBlogsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, status]);
+  }, [accessToken, status, searchApplied, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [status, searchApplied]);
 
   return (
     <div className="space-y-6">
@@ -108,7 +119,10 @@ export default function AdminBlogsPage() {
                 />
                 <button
                   type="button"
-                  onClick={load}
+                  onClick={() => {
+                    setSearchApplied(search);
+                    setPage(1);
+                  }}
                   className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted hover:text-foreground hover:border-foreground/40 transition"
                 >
                   Search
@@ -156,6 +170,16 @@ export default function AdminBlogsPage() {
               </div>
             ))}
           </div>
+        )}
+        {blogs.length > 0 && (
+          <Pagination
+            page={page}
+            totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+            total={total}
+            limit={PAGE_SIZE}
+            onPageChange={setPage}
+            loading={loading}
+          />
         )}
       </section>
     </div>

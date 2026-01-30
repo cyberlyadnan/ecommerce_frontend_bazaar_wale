@@ -172,11 +172,19 @@ export const getOrderById = (orderId: string, accessToken: string) =>
 /**
  * Get vendor orders (without customer details)
  */
-export const getVendorOrders = (accessToken: string) =>
-  apiClient<{ success: boolean; orders: Order[] }>('/api/orders/vendor', {
-    method: 'GET',
-    accessToken,
-  });
+export const getVendorOrders = (
+  accessToken: string,
+  options?: { limit?: number; skip?: number },
+) => {
+  const params = new URLSearchParams();
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.skip) params.set('skip', String(options.skip));
+  const qs = params.toString();
+  return apiClient<{ success: boolean; orders: Order[]; total: number }>(
+    `/api/orders/vendor${qs ? `?${qs}` : ''}`,
+    { method: 'GET', accessToken },
+  );
+};
 
 /**
  * Get admin orders (with full details)
@@ -186,17 +194,14 @@ export const getAdminOrders = (
   filter?: 'all' | 'admin_only',
   status?: string,
   search?: string,
+  options?: { limit?: number; skip?: number },
 ) => {
   const params = new URLSearchParams();
-  if (filter && filter !== 'all') {
-    params.set('filter', filter);
-  }
-  if (status && status !== 'all') {
-    params.set('status', status);
-  }
-  if (search && search.trim()) {
-    params.set('search', search.trim());
-  }
+  if (filter && filter !== 'all') params.set('filter', filter);
+  if (status && status !== 'all') params.set('status', status);
+  if (search?.trim()) params.set('search', search.trim());
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.skip) params.set('skip', String(options.skip));
   const queryString = params.toString();
   return apiClient<{
     success: boolean;
@@ -210,6 +215,7 @@ export const getAdminOrders = (
         role: string;
       }>;
     })[];
+    total: number;
   }>(`/api/orders/admin${queryString ? `?${queryString}` : ''}`, {
     method: 'GET',
     accessToken,

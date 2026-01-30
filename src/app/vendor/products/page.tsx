@@ -5,12 +5,17 @@ import { useEffect, useState } from 'react';
 import { Eye, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2, X } from 'lucide-react';
 
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import { deleteProductApi, fetchProducts, ProductDto } from '@/services/catalogApi';
 import { useAppSelector } from '@/store/redux/store';
 
+const PAGE_SIZE = 20;
+
 export default function VendorProductsPage() {
   const [products, setProducts] = useState<ProductDto[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -26,7 +31,7 @@ export default function VendorProductsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const loadProducts = async (searchValue: string) => {
+  const loadProducts = async (searchValue: string, pageNum: number) => {
     if (!accessToken) {
       setError('Session expired. Please sign in again.');
       setProducts([]);
@@ -35,12 +40,14 @@ export default function VendorProductsPage() {
     setLoading(true);
     setError('');
     try {
-      // Vendor can only see their own products
       const response = await fetchProducts(accessToken, {
         search: searchValue || undefined,
-        scope: 'mine', // Vendors only see their own products
+        scope: 'mine',
+        limit: PAGE_SIZE,
+        skip: (pageNum - 1) * PAGE_SIZE,
       });
       setProducts(response.products);
+      setTotal(response.total);
     } catch (err) {
       console.error('Failed to load products', err);
       const message =
@@ -57,9 +64,13 @@ export default function VendorProductsPage() {
       setProducts([]);
       return;
     }
-    loadProducts(debouncedSearch);
+    loadProducts(debouncedSearch, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, debouncedSearch]);
+  }, [accessToken, debouncedSearch, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
@@ -77,7 +88,7 @@ export default function VendorProductsPage() {
     try {
       await deleteProductApi(productId, accessToken);
       // Reload products after deletion
-      await loadProducts(debouncedSearch);
+      await loadProducts(debouncedSearch, page);
     } catch (err) {
       console.error('Failed to delete product', err);
       const message =
@@ -99,7 +110,7 @@ export default function VendorProductsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => loadProducts(debouncedSearch)}
+            onClick={() => loadProducts(debouncedSearch, page)}
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-3 md:px-4 py-2 text-xs md:text-sm font-semibold text-muted hover:text-foreground hover:border-foreground/40 transition"
             type="button"
             disabled={loading || !accessToken}
@@ -123,7 +134,8 @@ export default function VendorProductsPage() {
           className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
           onSubmit={(event) => {
             event.preventDefault();
-            loadProducts(searchTerm.trim());
+            setPage(1);
+            loadProducts(searchTerm.trim(), 1);
           }}
         >
           <div className="w-full md:max-w-xl">
@@ -352,6 +364,14 @@ export default function VendorProductsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={page}
+          totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+          total={total}
+          limit={PAGE_SIZE}
+          onPageChange={setPage}
+          loading={loading}
+        />
       </div>
     </div>
   );

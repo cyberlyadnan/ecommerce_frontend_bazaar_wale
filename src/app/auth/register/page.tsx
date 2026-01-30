@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 import { GuestGuard } from '@/components/auth/GuestGuard';
+import { PasswordStrength } from '@/components/auth/PasswordStrength';
+import { isPasswordAcceptable } from '@/utils/validation';
 import { ApiClientError } from '@/lib/apiClient';
 import {
   loginWithPassword,
@@ -56,8 +58,12 @@ export default function RegisterPage() {
       return false;
     }
 
-    if (!password || password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (!password) {
+      setError('Password is required.');
+      return false;
+    }
+    if (!isPasswordAcceptable(password)) {
+      setError('Password must be at least 8 characters and include a number or special character.');
       return false;
     }
 
@@ -306,9 +312,15 @@ export default function RegisterPage() {
                   onChange={(e) => handleCustomerChange('password', e.target.value)}
                   placeholder="••••••••"
                   className="w-full px-4 py-3.5 bg-background border-2 border-border rounded-xl text-foreground placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
-                  minLength={6}
+                  minLength={8}
                   required
                 />
+                <div className="mt-3 rounded-xl border border-border/50 bg-muted/30 p-4">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                    Password requirements
+                  </p>
+                  <PasswordStrength password={customerForm.password} />
+                </div>
               </div>
 
               <label className="flex items-start cursor-pointer gap-3 p-4 bg-background rounded-xl border-2 border-border hover:border-primary/50 transition-colors">

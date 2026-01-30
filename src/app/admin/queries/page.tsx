@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, MessageSquare, Reply, Trash2, Eye, CheckCircle2, X } from 'lucide-react';
 
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import {
   ContactQueryDto,
   deleteContactQuery,
@@ -14,18 +15,22 @@ import { useAppSelector } from '@/store/redux/store';
 
 type StatusFilter = 'all' | 'new' | 'read' | 'replied' | 'closed';
 
+const PAGE_SIZE = 20;
+
 export default function AdminQueriesPage() {
   const [queries, setQueries] = useState<ContactQueryDto[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [page, setPage] = useState(1);
   const [selectedQuery, setSelectedQuery] = useState<ContactQueryDto | null>(null);
   const [responseText, setResponseText] = useState('');
   const [responding, setResponding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const accessToken = useAppSelector((state) => state.auth.accessToken);
 
-  const loadQueries = async (status: StatusFilter) => {
+  const loadQueries = async (status: StatusFilter, pageNum: number) => {
     if (!accessToken) {
       setError('Admin session expired. Please sign in again.');
       setQueries([]);
@@ -38,9 +43,11 @@ export default function AdminQueriesPage() {
     try {
       const response = await getContactQueries(accessToken, {
         status: status === 'all' ? undefined : status,
-        limit: 100,
+        limit: PAGE_SIZE,
+        skip: (pageNum - 1) * PAGE_SIZE,
       });
       setQueries(response.contacts);
+      setTotal(response.total);
     } catch (err) {
       console.error('Failed to load queries', err);
       const message =
@@ -52,18 +59,20 @@ export default function AdminQueriesPage() {
   };
 
   useEffect(() => {
-    if (accessToken) {
-      loadQueries(statusFilter);
-    }
+    if (accessToken) loadQueries(statusFilter, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, statusFilter]);
+  }, [accessToken, statusFilter, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
 
   const handleMarkAsRead = async (queryId: string) => {
     if (!accessToken) return;
 
     try {
       await updateContactQuery(queryId, { status: 'read' }, accessToken);
-      await loadQueries(statusFilter);
+      await loadQueries(statusFilter, page);
     } catch (err) {
       console.error('Failed to update query status', err);
     }
@@ -88,7 +97,7 @@ export default function AdminQueriesPage() {
       );
       setSelectedQuery(null);
       setResponseText('');
-      await loadQueries(statusFilter);
+      await loadQueries(statusFilter, page);
     } catch (err) {
       console.error('Failed to respond to query', err);
       const message =
@@ -111,7 +120,7 @@ export default function AdminQueriesPage() {
 
     try {
       await deleteContactQuery(queryId, accessToken);
-      await loadQueries(statusFilter);
+      await loadQueries(statusFilter, page);
     } catch (err) {
       console.error('Failed to delete query', err);
       const message =
@@ -339,6 +348,14 @@ export default function AdminQueriesPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={page}
+          totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+          total={total}
+          limit={PAGE_SIZE}
+          onPageChange={setPage}
+          loading={loading}
+        />
       </div>
 
       {/* Query Detail Modal */}

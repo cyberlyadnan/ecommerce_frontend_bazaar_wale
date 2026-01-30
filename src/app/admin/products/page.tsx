@@ -5,16 +5,21 @@ import { useEffect, useState } from 'react';
 import { Loader2, Pencil, Plus, RefreshCcw, Search, X } from 'lucide-react';
 
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import { fetchProducts, ProductDto } from '@/services/catalogApi';
 import { useAppSelector } from '@/store/redux/store';
 
+const PAGE_SIZE = 20;
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductDto[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [scope, setScope] = useState<'all' | 'mine'>('all');
+  const [page, setPage] = useState(1);
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const currentUser = useAppSelector((state) => state.auth.user);
 
@@ -22,11 +27,14 @@ export default function AdminProductsPage() {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm.trim());
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const loadProducts = async (searchValue: string, scopeValue: 'all' | 'mine') => {
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, scope]);
+
+  const loadProducts = async (searchValue: string, scopeValue: 'all' | 'mine', pageNum: number) => {
     if (!accessToken) {
       setError('Admin session expired. Please sign in again.');
       setProducts([]);
@@ -38,9 +46,11 @@ export default function AdminProductsPage() {
       const response = await fetchProducts(accessToken, {
         search: searchValue || undefined,
         scope: scopeValue,
+        limit: PAGE_SIZE,
+        skip: (pageNum - 1) * PAGE_SIZE,
       });
-      console.log(response);
       setProducts(response.products);
+      setTotal(response.total);
     } catch (err) {
       console.error('Failed to load products', err);
       const message =
@@ -57,9 +67,9 @@ export default function AdminProductsPage() {
       setProducts([]);
       return;
     }
-    loadProducts(debouncedSearch, scope);
+    loadProducts(debouncedSearch, scope, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, debouncedSearch, scope]);
+  }, [accessToken, debouncedSearch, scope, page]);
 
   return (
     <div className="space-y-6">
@@ -96,7 +106,7 @@ export default function AdminProductsPage() {
             </button>
           </div>
           <button
-            onClick={() => loadProducts(debouncedSearch, scope)}
+            onClick={() => loadProducts(debouncedSearch, scope, page)}
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted hover:text-foreground hover:border-foreground/40 transition"
             type="button"
             disabled={loading || !accessToken}
@@ -119,7 +129,8 @@ export default function AdminProductsPage() {
           className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
           onSubmit={(event) => {
             event.preventDefault();
-            loadProducts(searchTerm.trim(), scope);
+            setPage(1);
+            loadProducts(searchTerm.trim(), scope, 1);
           }}
         >
           <div className="w-full md:max-w-xl">
@@ -269,6 +280,14 @@ export default function AdminProductsPage() {
             )}
           </tbody>
         </table>
+        <Pagination
+          page={page}
+          totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+          total={total}
+          limit={PAGE_SIZE}
+          onPageChange={(p) => setPage(p)}
+          loading={loading}
+        />
       </div>
     </div>
   );

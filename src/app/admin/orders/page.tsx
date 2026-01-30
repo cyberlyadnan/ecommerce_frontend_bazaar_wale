@@ -23,6 +23,7 @@ import {
   type Order,
 } from '@/services/orderApi';
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-IN', {
@@ -93,15 +94,19 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  // Debounce search input
+  const PAGE_SIZE = 20;
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 500);
-
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, statusFilter, debouncedSearch]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -116,8 +121,10 @@ export default function AdminOrdersPage() {
           filter,
           statusFilter !== 'all' ? statusFilter : undefined,
           debouncedSearch || undefined,
+          { limit: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE },
         );
         setOrders(response.orders || []);
+        setTotal(response.total ?? 0);
       } catch (err) {
         console.error('Failed to fetch admin orders:', err);
         toast.error(
@@ -131,7 +138,7 @@ export default function AdminOrdersPage() {
     };
 
     fetchOrders();
-  }, [accessToken, filter, statusFilter, debouncedSearch]);
+  }, [accessToken, filter, statusFilter, debouncedSearch, page]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     if (!accessToken) {
@@ -301,10 +308,10 @@ export default function AdminOrdersPage() {
       </header>
 
       {/* Results Count */}
-      {!loading && (
+      {!loading && orders.length > 0 && (
         <div className="flex items-center justify-between text-sm text-muted">
           <span>
-            Showing <span className="font-semibold text-foreground">{orders.length}</span> order{orders.length !== 1 ? 's' : ''}
+            Showing <span className="font-semibold text-foreground">{orders.length}</span> of <span className="font-semibold text-foreground">{total}</span> order{total !== 1 ? 's' : ''}
             {searchQuery && (
               <span> for &quot;<span className="font-semibold text-foreground">{searchQuery}</span>&quot;</span>
             )}
@@ -642,6 +649,16 @@ export default function AdminOrdersPage() {
               })}
             </div>
           </div>
+          {orders.length > 0 && (
+            <Pagination
+              page={page}
+              totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+              total={total}
+              limit={PAGE_SIZE}
+              onPageChange={setPage}
+              loading={loading}
+            />
+          )}
         </section>
       )}
     </div>

@@ -114,6 +114,8 @@ export const fetchCategories = () =>
 export interface FetchProductsOptions {
   search?: string;
   scope?: 'all' | 'mine';
+  limit?: number;
+  skip?: number;
 }
 
 export interface VendorDto {
@@ -149,6 +151,8 @@ export interface VendorDto {
 export interface FetchVendorsOptions {
   search?: string;
   status?: 'all' | 'pending' | 'active' | 'rejected' | 'suspended';
+  limit?: number;
+  skip?: number;
 }
 
 export interface UploadedFileDto {
@@ -187,51 +191,42 @@ export const deleteCategoryApi = (categoryId: string, accessToken?: string | nul
     accessToken,
   });
 
+export interface FetchProductsResponse {
+  products: ProductDto[];
+  total: number;
+}
+
 export const fetchProducts = (
   accessToken?: string | null,
   options?: FetchProductsOptions,
 ) => {
-  let path: string = adminApiEndpoints.products;
   const params = new URLSearchParams();
-
-  if (options?.search && options.search.trim().length > 0) {
-    params.set('search', options.search.trim());
-  }
-
-  if (options?.scope && options.scope !== 'all') {
-    params.set('scope', options.scope);
-  }
-
-  const queryString = params.toString();
-  if (queryString) {
-    path = `${path}?${queryString}`;
-  }
-
-  return apiClient<{ products: ProductDto[] }>(path, {
-    method: 'GET',
-    accessToken,
-  });
+  if (options?.search?.trim()) params.set('search', options.search.trim());
+  if (options?.scope && options.scope !== 'all') params.set('scope', options.scope);
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.skip) params.set('skip', String(options.skip));
+  const qs = params.toString();
+  const path = qs ? `${adminApiEndpoints.products}?${qs}` : adminApiEndpoints.products;
+  return apiClient<FetchProductsResponse>(path, { method: 'GET', accessToken });
 };
+
+export interface FetchVendorsResponse {
+  vendors: VendorDto[];
+  total: number;
+}
 
 export const fetchVendors = (
   accessToken: string,
   options?: FetchVendorsOptions,
 ) => {
   const params = new URLSearchParams();
-  if (options?.search && options.search.trim().length > 0) {
-    params.set('search', options.search.trim());
-  }
-  if (options?.status && options.status !== 'all') {
-    params.set('status', options.status);
-  }
-  const path = params.toString()
-    ? `${adminApiEndpoints.vendors}?${params.toString()}`
-    : adminApiEndpoints.vendors;
-
-  return apiClient<{ vendors: VendorDto[] }>(path, {
-    method: 'GET',
-    accessToken,
-  });
+  if (options?.search?.trim()) params.set('search', options.search.trim());
+  if (options?.status && options.status !== 'all') params.set('status', options.status);
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.skip) params.set('skip', String(options.skip));
+  const qs = params.toString();
+  const path = qs ? `${adminApiEndpoints.vendors}?${qs}` : adminApiEndpoints.vendors;
+  return apiClient<FetchVendorsResponse>(path, { method: 'GET', accessToken });
 };
 
 export const approveVendorApi = (vendorId: string, accessToken: string) =>

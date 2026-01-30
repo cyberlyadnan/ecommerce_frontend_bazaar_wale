@@ -1,42 +1,50 @@
-// components/Footer/Footer.tsx
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin, 
-  Mail, 
-  Phone, 
+import { useState } from 'react';
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Mail,
+  Phone,
   MapPin,
   CreditCard,
   Shield,
   Truck,
-  HeadphonesIcon
+  HeadphonesIcon,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
+import { subscribeNewsletter } from '@/services/subscriberApi';
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
     company: [
       { label: 'About Us', href: '/about' },
-      { label: 'Careers', href: '/careers' },
-      { label: 'Press', href: '/press' },
+      // { label: 'Careers', href: '/careers' },
+      // { label: 'Press', href: '/press' },
       { label: 'Blog', href: '/blog' },
       { label: 'Contact', href: '/contact' },
     ],
     shop: [
       { label: 'All Products', href: '/products' },
       { label: 'Categories', href: '/categories' },
-      { label: 'New Arrivals', href: '/new-arrivals' },
-      { label: 'Best Sellers', href: '/best-sellers' },
+      // { label: 'New Arrivals', href: '/new-arrivals' },
+      // { label: 'Best Sellers', href: '/best-sellers' },
       // { label: 'Special Offers', href: '/deals' },
     ],
     support: [
       { label: 'Help Center', href: '/help' },
-      { label: 'Track Order', href: '/track-order' },
-      { label: 'Returns', href: '/returns' },
+      // { label: 'Track Order', href: '/track-order' },
+      // { label: 'Returns', href: '/returns' },
       { label: 'Shipping Info', href: '/shipping' },
       { label: 'FAQs', href: '/faqs' },
     ],
@@ -137,7 +145,7 @@ export function Footer() {
               </a>
               
               <a 
-                href="tel:+1234567890" 
+                href="tel:+918826920195" 
                 className="flex items-center gap-3 text-muted hover:text-primary transition-colors group"
               >
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -220,19 +228,61 @@ export function Footer() {
             <p className="text-muted text-sm mb-4">
               Subscribe to get special offers and updates.
             </p>
-            <form className="space-y-3">
+            <form
+              className="space-y-3"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const val = email.trim();
+                if (!val) return;
+                setStatus('loading');
+                setMessage('');
+                try {
+                  await subscribeNewsletter(val);
+                  setStatus('success');
+                  setMessage('Thank you for subscribing!');
+                  setEmail('');
+                } catch (err) {
+                  setStatus('error');
+                  setMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+                }
+              }}
+            >
               <input
                 type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (status !== 'idle') setStatus('idle');
+                }}
                 placeholder="Your email"
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground text-sm transition-all"
+                disabled={status === 'loading'}
+                required
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground text-sm transition-all disabled:opacity-70"
                 aria-label="Email for newsletter"
               />
               <button
                 type="submit"
-                className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors text-sm"
+                disabled={status === 'loading'}
+                className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors text-sm disabled:opacity-70 inline-flex items-center justify-center gap-2"
               >
-                Subscribe
+                {status === 'loading' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Subscribing...
+                  </>
+                ) : (
+                  'Subscribe'
+                )}
               </button>
+              {status === 'success' && message && (
+                <p className="text-sm text-success flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  {message}
+                </p>
+              )}
+              {status === 'error' && message && (
+                <p className="text-sm text-destructive">{message}</p>
+              )}
             </form>
           </div>
         </div>

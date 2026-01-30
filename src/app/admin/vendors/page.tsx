@@ -22,6 +22,7 @@ import {
   VendorDto,
 } from '@/services/catalogApi';
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import { useAppSelector } from '@/store/redux/store';
 
 type VendorStatusFilter = 'all' | 'pending' | 'active' | 'rejected' | 'suspended';
@@ -50,6 +51,10 @@ export default function AdminVendorsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [docVendorId, setDocVendorId] = useState<string | null>(null);
   const [profileVendorId, setProfileVendorId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,7 +63,7 @@ export default function AdminVendorsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const loadVendors = async (searchValue: string, statusValue: VendorStatusFilter) => {
+  const loadVendors = async (searchValue: string, statusValue: VendorStatusFilter, pageNum: number) => {
     if (!accessToken) {
       setError('Admin session expired. Please sign in again.');
       setVendors([]);
@@ -70,8 +75,11 @@ export default function AdminVendorsPage() {
       const response = await fetchVendors(accessToken, {
         search: searchValue || undefined,
         status: statusValue,
+        limit: PAGE_SIZE,
+        skip: (pageNum - 1) * PAGE_SIZE,
       });
       setVendors(response.vendors);
+      setTotal(response.total);
     } catch (err) {
       console.error('Failed to load vendors', err);
       const message =
@@ -88,9 +96,13 @@ export default function AdminVendorsPage() {
       setVendors([]);
       return;
     }
-    loadVendors(debouncedSearch, status);
+    loadVendors(debouncedSearch, status, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, debouncedSearch, status]);
+  }, [accessToken, debouncedSearch, status, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, status]);
 
   const stats = useMemo(() => {
     const totals = {
@@ -117,7 +129,7 @@ export default function AdminVendorsPage() {
         error: '',
         success: 'Vendor approved successfully.',
       });
-      await loadVendors(debouncedSearch, status);
+      await loadVendors(debouncedSearch, status, page);
     } catch (err) {
       console.error('Failed to approve vendor', err);
       const message =
@@ -141,7 +153,7 @@ export default function AdminVendorsPage() {
         success: 'Vendor rejected successfully.',
       });
       setRejectReason('');
-      await loadVendors(debouncedSearch, status);
+      await loadVendors(debouncedSearch, status, page);
     } catch (err) {
       console.error('Failed to reject vendor', err);
       const message =
@@ -204,7 +216,7 @@ export default function AdminVendorsPage() {
           </p>
         </div>
         <button
-          onClick={() => loadVendors(debouncedSearch, status)}
+          onClick={() => loadVendors(debouncedSearch, status, page)}
           className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted hover:text-foreground hover:border-foreground/40 transition"
           type="button"
           disabled={loading || !accessToken}
@@ -240,7 +252,8 @@ export default function AdminVendorsPage() {
           className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:justify-between"
           onSubmit={(event) => {
             event.preventDefault();
-            loadVendors(searchTerm.trim(), status);
+            setPage(1);
+            loadVendors(searchTerm.trim(), status, 1);
           }}
         >
           <div className="flex-1">
@@ -443,6 +456,14 @@ export default function AdminVendorsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={page}
+          totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+          total={total}
+          limit={PAGE_SIZE}
+          onPageChange={setPage}
+          loading={loading}
+        />
       </section>
 
       {actionState.vendorId && selectedVendor && (

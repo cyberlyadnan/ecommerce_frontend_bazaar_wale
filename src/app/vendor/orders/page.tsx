@@ -24,6 +24,7 @@ import {
   type Order,
 } from '@/services/orderApi';
 import { ApiClientError } from '@/lib/apiClient';
+import { Pagination } from '@/components/shared/Pagination';
 import { formatCurrency } from '@/utils/currency';
 
 const statusConfig: Record<
@@ -71,7 +72,10 @@ export default function VendorOrdersPage() {
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const user = useAppSelector((state) => state.auth.user);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const PAGE_SIZE = 20;
   const [updatingStatus, setUpdatingStatus] = useState<Set<string>>(new Set());
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
@@ -83,8 +87,12 @@ export default function VendorOrdersPage() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await getVendorOrders(accessToken);
+        const response = await getVendorOrders(accessToken, {
+          limit: PAGE_SIZE,
+          skip: (page - 1) * PAGE_SIZE,
+        });
         setOrders(response.orders || []);
+        setTotal(response.total ?? 0);
       } catch (err) {
         console.error('Failed to fetch vendor orders:', err);
         toast.error(
@@ -98,7 +106,8 @@ export default function VendorOrdersPage() {
     };
 
     fetchOrders();
-  }, [accessToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, page]);
 
   const handleStatusUpdate = async (
     orderId: string,
@@ -549,6 +558,16 @@ export default function VendorOrdersPage() {
             })}
           </div>
         </div>
+      )}
+      {orders.length > 0 && (
+        <Pagination
+          page={page}
+          totalPages={Math.ceil(total / PAGE_SIZE) || 1}
+          total={total}
+          limit={PAGE_SIZE}
+          onPageChange={setPage}
+          loading={loading}
+        />
       )}
     </div>
   );

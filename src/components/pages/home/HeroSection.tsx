@@ -8,32 +8,36 @@ import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 const heroSlides = [
   {
     id: 1,
-    title: 'Premium Quality Products',
-    subtitle: 'Shop the Best',
-    description: 'Discover thousands of high-quality products from verified suppliers. Everything you need for your business in one place.',
-    cta: 'Shop Now',
+    title: 'Elevate Your Style',
+    subtitle: 'Premium Fashion Collection',
+    description:
+      'Discover handpicked fashion essentials crafted with quality and style in mind. Designed to make you look confident every day.',
+    cta: 'Shop Collection',
     ctaLink: '/products',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=1080&fit=crop&q=80',
+    image: '/images/cloths.png',
   },
   {
     id: 2,
-    title: 'Industrial Equipment & Machinery',
-    subtitle: 'Professional Tools',
-    description: 'Find the best industrial equipment and machinery from trusted manufacturers. Quality guaranteed for your business needs.',
-    cta: 'Browse Equipment',
+    title: 'Timeless Jewellery',
+    subtitle: 'Luxury You Can Feel',
+    description:
+      'Explore elegant jewellery pieces made to shine on every occasion. Premium designs that define class and sophistication.',
+    cta: 'Explore Jewellery',
     ctaLink: '/products',
-    image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&h=1080&fit=crop&q=80',
+    image: '/images/jewellery.png',
   },
   {
     id: 3,
-    title: 'Electronics & Components',
-    subtitle: 'Latest Technology',
-    description: 'Get access to the latest electronics and components from top brands. Stay ahead with cutting-edge technology.',
-    cta: 'Explore Electronics',
+    title: 'Beauty That Inspires',
+    subtitle: 'Makeup & Essentials',
+    description:
+      'Enhance your natural beauty with high-quality makeup and beauty products trusted by professionals and loved by customers.',
+    cta: 'Shop Beauty',
     ctaLink: '/products',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1920&h=1080&fit=crop&q=80',
+    image: '/images/makeup1.png',
   },
 ];
+
 
 export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
