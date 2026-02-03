@@ -48,12 +48,28 @@ export const getProductBySlug = cache(async (slug: string): Promise<ProductDto |
 });
 
 export const getFeaturedProducts = cache(async (limit = 8): Promise<ProductDto[]> => {
-  const url = `${API_BASE_URL}/api/catalog/products/public?limit=${limit}`;
+  const url = `${API_BASE_URL}/api/catalog/products/public?featured=true&limit=${limit}`;
   const { products } = await fetchJson<{ products: ProductDto[] }>(url, {
     next: { revalidate: 300 },
   });
   return products ?? [];
 });
+
+export const getPublicProductsByCategory = cache(
+  async (categorySlug: string, options?: { limit?: number; skip?: number }): Promise<{ products: ProductDto[]; total: number }> => {
+    const params = new URLSearchParams({ category: categorySlug });
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.skip !== undefined) params.set('skip', String(options.skip));
+    const url = `${API_BASE_URL}/api/catalog/products/public?${params.toString()}`;
+    const data = await fetchJson<{ products: ProductDto[]; total?: number }>(url, {
+      next: { revalidate: 60 },
+    });
+    return {
+      products: data.products ?? [],
+      total: data.total ?? data.products?.length ?? 0,
+    };
+  }
+);
 
 
 

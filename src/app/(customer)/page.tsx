@@ -16,14 +16,25 @@ import {
   Clock,
 } from 'lucide-react';
 
+import type { Metadata } from 'next';
 import HeroSection from '@/components/pages/home/HeroSection';
 import ProductShowcase from '@/components/pages/home/ProductShowcase';
 import BecomeVendorSection from '@/components/pages/home/BecomeVendorSection';
 import { getFeaturedProducts } from '@/services/serverProducts';
 import { getCategories } from '@/services/serverCategories';
 import { CategoriesShowcase } from '@/components/pages/home/CategoriesShowcase';
+import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Home',
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+};
 
 export default async function CustomerHomePage() {
   let products: any[] = [];

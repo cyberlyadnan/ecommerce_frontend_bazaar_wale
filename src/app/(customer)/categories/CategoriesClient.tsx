@@ -165,7 +165,7 @@ export function CategoriesClient({
             return (
               <Link
                 key={category._id}
-                href={`/products?category=${category.slug}`}
+                href={`/categories/${category.slug}`}
                 className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-surface shadow-lg hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 hover:border-primary/60"
               >
                 {/* Image Container */}
@@ -264,7 +264,7 @@ function CategoryTreeNodeComponent({
   return (
     <div className="select-none">
       <Link
-        href={`/products?category=${node.slug}`}
+        href={`/categories/${node.slug}`}
         className={`
           group relative flex items-center gap-4 rounded-2xl border border-border/50 bg-surface/80 backdrop-blur-sm p-4 md:p-6
           transition-all duration-300 hover:border-primary/50 hover:bg-surface hover:shadow-xl hover:-translate-y-1

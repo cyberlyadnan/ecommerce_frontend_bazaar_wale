@@ -69,7 +69,7 @@ export function CategoriesShowcase({ categories }: CategoriesShowcaseProps) {
             return (
               <Link
                 key={category._id}
-                href={`/products?category=${category.slug}`}
+                href={`/categories/${category.slug}`}
                 className="group relative bg-surface overflow-hidden border border-border/50 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col"
               >
                 {/* Image - Reduced Height */}

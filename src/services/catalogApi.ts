@@ -276,16 +276,30 @@ export const fetchProductById = (productId: string, accessToken?: string | null)
 /**
  * Fetch public products (no authentication required)
  */
-export const fetchPublicProducts = (options?: { search?: string; limit?: number }) => {
+export const fetchPublicProducts = (options?: {
+  search?: string;
+  category?: string;
+  featured?: boolean;
+  limit?: number;
+  skip?: number;
+}) => {
   let path = '/api/catalog/products/public';
   const params = new URLSearchParams();
 
   if (options?.search && options.search.trim().length > 0) {
     params.set('search', options.search.trim());
   }
-
+  if (options?.category && options.category.trim().length > 0) {
+    params.set('category', options.category.trim());
+  }
+  if (options?.featured) {
+    params.set('featured', 'true');
+  }
   if (options?.limit && options.limit > 0) {
     params.set('limit', options.limit.toString());
+  }
+  if (options?.skip !== undefined && options.skip >= 0) {
+    params.set('skip', options.skip.toString());
   }
 
   const queryString = params.toString();
@@ -293,7 +307,7 @@ export const fetchPublicProducts = (options?: { search?: string; limit?: number 
     path = `${path}?${queryString}`;
   }
 
-  return apiClient<{ products: ProductDto[] }>(path, {
+  return apiClient<{ products: ProductDto[]; total?: number }>(path, {
     method: 'GET',
     skipAuthHeader: true,
   });

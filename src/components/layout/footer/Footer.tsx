@@ -340,7 +340,7 @@ export function Footer() {
               Secure Payment Methods:
             </span>
             <div className="flex items-center gap-3 flex-wrap justify-center">
-              {['Visa', 'Mastercard', 'AmEx', 'PayPal', 'Stripe'].map((method) => (
+              {[ 'UPI', 'Visa', 'Mastercard', 'PayPal', 'Stripe'].map((method) => (
                 <div
                   key={method}
                   className="px-3 py-1.5 bg-surface border border-border rounded text-xs font-semibold text-muted hover:border-primary transition-colors"

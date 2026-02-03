@@ -55,18 +55,40 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Update URL params
+  // SEO: Redirect /products?category=slug to /categories/slug when it's category-only (no search, price, sort, or filters=1)
+  const urlCategory = searchParams.get('category');
+  const urlSearch = searchParams.get('search');
+  const urlSort = searchParams.get('sort');
+  const urlFilters = searchParams.get('filters');
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (debouncedSearch) params.set('search', debouncedSearch);
-    if (selectedCategory) params.set('category', selectedCategory);
-    if (sortBy !== 'newest') params.set('sort', sortBy);
-    
-    const newUrl = params.toString() 
-      ? `/products?${params.toString()}` 
-      : '/products';
-    router.replace(newUrl, { scroll: false });
-  }, [debouncedSearch, selectedCategory, sortBy, router]);
+    const hasCategoryOnly = urlCategory && !urlSearch && (!urlSort || urlSort === 'newest') && !urlFilters;
+    if (hasCategoryOnly) {
+      router.replace(`/categories/${urlCategory}`, { scroll: false });
+    }
+  }, [urlCategory, urlSearch, urlSort, urlFilters, router]);
+
+  const wantsFilters = urlFilters === '1';
+
+  // Update URL params - use SEO-friendly /categories/slug when only category is selected (unless filters=1)
+  useEffect(() => {
+    const hasOtherFilters = debouncedSearch || priceRange || sortBy !== 'newest';
+    let targetUrl: string;
+    if (selectedCategory && !hasOtherFilters && !wantsFilters) {
+      targetUrl = `/categories/${selectedCategory}`;
+    } else {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (selectedCategory) params.set('category', selectedCategory);
+      if (sortBy !== 'newest') params.set('sort', sortBy);
+      if (wantsFilters) params.set('filters', '1');
+      targetUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+    }
+    // Only update if URL actually changed to avoid infinite loop
+    const current = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+    if (current !== targetUrl) {
+      router.replace(targetUrl, { scroll: false });
+    }
+  }, [debouncedSearch, selectedCategory, sortBy, priceRange, wantsFilters, router]);
 
   // Fetch products
   useEffect(() => {

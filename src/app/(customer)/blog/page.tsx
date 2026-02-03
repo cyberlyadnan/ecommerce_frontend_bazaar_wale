@@ -2,9 +2,15 @@ import Link from 'next/link';
 
 import { getPublicBlogs } from '@/services/serverBlog';
 
-export const metadata = {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: 'Blog',
-  description: 'Insights, guides, and updates.',
+  description: 'B2B insights, business guides, industry updates, and tips from Bazaarwale.',
+  openGraph: {
+    title: 'Blog | Bazaarwale',
+    description: 'B2B insights, business guides, and industry updates.',
+  },
 };
 
 export const dynamic = 'force-dynamic';

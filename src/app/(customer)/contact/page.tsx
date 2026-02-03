@@ -19,8 +19,12 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { ContactForm } from '@/components/pages/contact/ContactForm';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | Ecommerce B2B',
-  description: 'Get in touch with us for support, inquiries, or partnership opportunities.',
+  title: 'Contact Us',
+  description: 'Get in touch with Bazaarwale for B2B support, bulk order inquiries, or partnership opportunities. We respond within 24 hours.',
+  openGraph: {
+    title: 'Contact Us | Bazaarwale',
+    description: 'Get in touch with us for support, inquiries, or partnership opportunities.',
+  },
 };
 
 export default function ContactPage() {

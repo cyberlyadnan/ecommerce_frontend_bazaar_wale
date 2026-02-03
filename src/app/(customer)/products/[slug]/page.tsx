@@ -12,6 +12,7 @@ import {
 
 import { getProductBySlug } from '@/services/serverProducts';
 import { formatCurrency, resolveProductImage } from '@/utils/currency';
+import { absoluteUrl, SITE_NAME } from '@/lib/seo';
 import Link from 'next/link';
 import { ProductActions } from '@/components/pages/product/ProductActions';
 import { ReviewSection } from '@/components/pages/product/ReviewSection';
@@ -34,25 +35,34 @@ export async function generateMetadata({
       return { title: 'Product not found' };
     }
 
-    const title = `${product.title} | Ecommerce B2B`;
+    const title = `${product.title} | ${SITE_NAME}`;
     const description =
-      product.shortDescription || product.description || 'Discover B2B wholesale pricing';
+      product.shortDescription || product.description || `Buy ${product.title} at Bazaarwale - B2B wholesale pricing`;
 
-    const ogImage = product.images?.[0]?.url;
+    const imageUrl = product.images?.[0]?.url;
+    const finalOgImage = imageUrl
+      ? imageUrl.startsWith('http')
+        ? imageUrl
+        : absoluteUrl(imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`)
+      : absoluteUrl('/logo.png');
 
     return {
       title,
       description,
+      alternates: {
+        canonical: absoluteUrl(`/products/${slug}`),
+      },
       openGraph: {
         title,
         description,
-        images: ogImage ? [{ url: ogImage, alt: product.images?.[0]?.alt || product.title }] : [],
+        type: 'website',
+        url: absoluteUrl(`/products/${slug}`),
+        images: [{ url: finalOgImage, alt: product.images?.[0]?.alt || product.title }],
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
-        images: ogImage ? [ogImage] : undefined,
       },
     };
   } catch (error) {
@@ -117,8 +127,32 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     : [];
   const hsnCode = typeof product.meta?.hsn === 'string' ? (product.meta.hsn as string) : undefined;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.shortDescription || product.description,
+    image: (product.images ?? [])
+      .map((img) => {
+        const u = img?.url;
+        if (!u) return null;
+        return u.startsWith('http') ? u : absoluteUrl(u.startsWith('/') ? u : `/${u}`);
+      })
+      .filter(Boolean) as string[],
+    sku: product.sku,
+    offers: {
+      '@type': 'Offer',
+      price: priceUnit,
+      priceCurrency: 'INR',
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    },
+    category: product.category?.name,
+    url: absoluteUrl(`/products/${product.slug}`),
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <RecordProductView product={product} />
       {/* Breadcrumb */}
       <div className="bg-surface border-b border-border">

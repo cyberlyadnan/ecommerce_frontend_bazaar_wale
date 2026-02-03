@@ -16,8 +16,12 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'About Us | Ecommerce B2B',
-  description: 'Learn about our B2B ecommerce platform and our mission to connect businesses.',
+  title: 'About Us',
+  description: 'Learn about Bazaarwale - your trusted B2B wholesale partner. Our mission is to connect businesses with quality products and exceptional service.',
+  openGraph: {
+    title: 'About Us | Bazaarwale',
+    description: 'Learn about Bazaarwale - your trusted B2B wholesale partner.',
+  },
 };
 
 export default function AboutPage() {

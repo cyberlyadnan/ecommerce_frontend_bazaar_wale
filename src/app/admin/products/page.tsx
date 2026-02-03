@@ -228,7 +228,7 @@ export default function AdminProductsPage() {
                           <span className="text-xs text-muted">GST • {product.vendor.gstNumber}</span>
                         )}
                         {currentUser && product.vendor._id === currentUser.id && (
-                          <span className="mt-1 inline-flex w-fit items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
+                          <span className="mt-1 inline-flex w-fit items-center rounded-full bg-primary/10 px-2 py-0.5 text-[6px] font-semibold uppercase text-primary">
                             Your listing
                           </span>
                         )}

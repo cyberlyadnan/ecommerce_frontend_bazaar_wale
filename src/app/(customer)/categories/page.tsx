@@ -12,8 +12,13 @@ import { CategoriesClient } from './CategoriesClient';
 import { getCategories } from '@/services/serverCategories';
 
 export const metadata: Metadata = {
-  title: 'Shop by Category | Ecommerce B2B',
-  description: 'Browse our wide range of product categories. Find everything your business needs in one place.',
+  title: 'Shop by Category',
+  description: 'Browse our wide range of B2B product categories. Find everything your business needs - electronics, machinery, raw materials & more.',
+  openGraph: {
+    title: 'Shop by Category | Bazaarwale',
+    description: 'Browse our wide range of B2B product categories. Find everything your business needs.',
+    url: '/categories',
+  },
 };
 
 export const dynamic = 'force-dynamic';
