@@ -357,6 +357,21 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
       setMessage({ type: 'error', text: 'Product title is required.' });
       return;
     }
+    if (!form.category?.trim()) {
+      setMessage({ type: 'error', text: 'Please select a category.' });
+      return;
+    }
+    if (!form.subcategory?.trim()) {
+      if (childCategories.length > 0) {
+        setMessage({ type: 'error', text: 'Please select a subcategory.' });
+      } else {
+        setMessage({
+          type: 'error',
+          text: 'This category has no subcategories. Add a subcategory in Category Management first, or choose another category.',
+        });
+      }
+      return;
+    }
     if (!form.price) {
       setMessage({ type: 'error', text: 'Product price is required.' });
       return;
@@ -522,10 +537,16 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
 
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-3">
-            <label className="text-xs font-semibold uppercase text-muted/80">Category</label>
+            <label className="text-xs font-semibold uppercase text-muted/80">
+              Category <span className="text-destructive">*</span>
+            </label>
             <select
+              required
               value={form.category}
-              onChange={(event) => handleFieldChange('category', event.target.value)}
+              onChange={(event) => {
+                const newCategory = event.target.value;
+                setForm((prev) => ({ ...prev, category: newCategory, subcategory: '' }));
+              }}
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
             >
               <option value="">Select category</option>
@@ -537,8 +558,11 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
             </select>
           </div>
           <div className="space-y-3">
-            <label className="text-xs font-semibold uppercase text-muted/80">Subcategory</label>
+            <label className="text-xs font-semibold uppercase text-muted/80">
+              Subcategory <span className="text-destructive">*</span>
+            </label>
             <select
+              required
               value={form.subcategory}
               onChange={(event) => handleFieldChange('subcategory', event.target.value)}
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none"
@@ -553,6 +577,11 @@ export function ProductEditor({ mode, categories, accessToken, product, onSucces
                 </option>
               ))}
             </select>
+            {form.category && childCategories.length === 0 && (
+              <p className="text-xs text-amber-600">
+                Add a subcategory for this category in Category Management to create products here.
+              </p>
+            )}
           </div>
         </div>
 
