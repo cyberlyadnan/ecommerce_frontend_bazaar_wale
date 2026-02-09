@@ -13,6 +13,9 @@ import {
   ArrowRight,
   CheckCircle2,
   Sparkles,
+  UserCircle2,
+  Linkedin,
+  Mail,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -292,6 +295,82 @@ export default function AboutPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section className="relative py-16 md:py-24 bg-gradient-to-br from-surface via-background to-surface border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <UserCircle2 className="w-4 h-4 text-primary" />
+              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                Our Team
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Meet the People Behind Bazaarwale
+            </h2>
+            <p className="text-lg text-foreground/70">
+              Dedicated professionals driving innovation and building lasting partnerships for your business.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-8 md:gap-10 max-w-3xl mx-auto">
+            {[
+              {
+                name: 'Rahul Sharma',
+                role: 'Co-Founder & CEO',
+                bio: 'Leads strategy and growth. Former supply chain executive with 15+ years in B2B commerce.',
+                image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=320&h=320&fit=crop&q=80',
+              },
+              {
+                name: 'Priya Mehta',
+                role: 'Co-Founder & COO',
+                bio: 'Operations and vendor relations. Passionate about connecting quality suppliers with businesses.',
+                image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=320&h=320&fit=crop&q=80',
+              },
+            ].map((member, index) => (
+              <div
+                key={index}
+                className="group relative bg-surface rounded-2xl overflow-hidden border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="relative h-44 sm:h-48 overflow-hidden">
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, 280px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/30 to-transparent opacity-80" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3 className="text-xl font-bold">{member.name}</h3>
+                    <p className="text-white/90 text-sm font-semibold mt-0.5">{member.role}</p>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <p className="text-foreground/70 leading-relaxed">{member.bio}</p>
+                  <div className="flex gap-3 mt-3">
+                    <a
+                      href="#"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                      aria-label={`${member.name} LinkedIn`}
+                    >
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a
+                      href="#"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                      aria-label={`Email ${member.name}`}
+                    >
+                      <Mail className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
