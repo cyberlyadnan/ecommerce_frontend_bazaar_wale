@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Save, Plus, Search, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { Loader2, Save, Plus, Search, CheckCircle2, Clock, XCircle, ChevronDown, FileText } from 'lucide-react';
 
 import { useAppSelector } from '@/store/redux/store';
 import { ApiClientError } from '@/lib/apiClient';
@@ -10,12 +10,14 @@ import {
   adminCreatePayout,
   adminListPayouts,
   adminUpdatePayout,
+  downloadPayoutSlipPdf,
   getAdminCommission,
   updateAdminCommission,
   type PayoutDto,
   type PayoutStatus,
   type PaymentMode,
 } from '@/services/paymentsApi';
+import { fetchVendors, type VendorDto } from '@/services/catalogApi';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-IN', {
@@ -64,11 +66,17 @@ export default function AdminPaymentsPage() {
 
   // simple create payout form (manual)
   const [creating, setCreating] = useState(false);
-  const [vendorId, setVendorId] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState<VendorDto | null>(null);
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [vendorList, setVendorList] = useState<VendorDto[]>([]);
+  const [vendorDropdownOpen, setVendorDropdownOpen] = useState(false);
+  const [loadingVendors, setLoadingVendors] = useState(false);
+  const vendorDropdownRef = useRef<HTMLDivElement>(null);
   const [grossAmount, setGrossAmount] = useState<number>(0);
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('bank');
   const [notes, setNotes] = useState('');
   const [reference, setReference] = useState('');
+  const [downloadingSlipId, setDownloadingSlipId] = useState<string | null>(null);
 
   const statusParam = useMemo(() => {
     if (tab === 'all') return 'all';
@@ -109,6 +117,55 @@ export default function AdminPaymentsPage() {
     setPage(1);
   }, [statusParam]);
 
+  const loadVendors = async (search: string) => {
+    if (!accessToken) return;
+    setLoadingVendors(true);
+    try {
+      const res = await fetchVendors(accessToken, {
+        status: 'active',
+        limit: 200,
+        search: search.trim() || undefined,
+      });
+      setVendorList(res.vendors || []);
+    } catch {
+      setVendorList([]);
+    } finally {
+      setLoadingVendors(false);
+    }
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => loadVendors(vendorSearch), 300);
+    return () => clearTimeout(t);
+  }, [accessToken, vendorSearch]);
+
+  useEffect(() => {
+    if (vendorDropdownOpen && vendorList.length === 0 && !loadingVendors) loadVendors('');
+  }, [vendorDropdownOpen]);
+
+  useEffect(() => {
+    const onOutside = (e: MouseEvent) => {
+      if (vendorDropdownRef.current && !vendorDropdownRef.current.contains(e.target as Node)) {
+        setVendorDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
+  }, []);
+
+  const filteredVendors = useMemo(() => {
+    const term = vendorSearch.trim().toLowerCase();
+    if (!term) return vendorList;
+    return vendorList.filter(
+      (v) =>
+        (v.businessName || '').toLowerCase().includes(term) ||
+        (v.name || '').toLowerCase().includes(term) ||
+        (v.email || '').toLowerCase().includes(term),
+    );
+  }, [vendorList, vendorSearch]);
+
+  const displayVendorLabel = (v: VendorDto) => v.businessName || v.name || v._id;
+
   const saveCommission = async () => {
     if (!accessToken) return;
     try {
@@ -125,13 +182,13 @@ export default function AdminPaymentsPage() {
   };
 
   const createPayout = async () => {
-    if (!accessToken) return;
+    if (!accessToken || !selectedVendor) return;
     try {
       setCreating(true);
       setError(null);
       await adminCreatePayout(
         {
-          vendorId: vendorId.trim(),
+          vendorId: selectedVendor._id,
           grossAmount: Number(grossAmount),
           paymentMode,
           adminNotes: notes.trim() || undefined,
@@ -139,7 +196,8 @@ export default function AdminPaymentsPage() {
         },
         accessToken,
       );
-      setVendorId('');
+      setSelectedVendor(null);
+      setVendorSearch('');
       setGrossAmount(0);
       setNotes('');
       setReference('');
@@ -149,6 +207,19 @@ export default function AdminPaymentsPage() {
       setError(e instanceof ApiClientError ? e.message : 'Failed to create payout.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDownloadSlip = async (payoutId: string) => {
+    if (!accessToken) return;
+    setDownloadingSlipId(payoutId);
+    try {
+      await downloadPayoutSlipPdf(payoutId, accessToken);
+    } catch (e) {
+      console.error('Failed to download slip:', e);
+      setError(e instanceof Error ? e.message : 'Failed to download slip');
+    } finally {
+      setDownloadingSlipId(null);
     }
   };
 
@@ -212,15 +283,61 @@ export default function AdminPaymentsPage() {
 
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-foreground">Create payout</h2>
-          <p className="mt-1 text-xs text-muted">Manual entry (vendorId + gross amount).</p>
+          <p className="mt-1 text-xs text-muted">Select vendor by business name and enter gross amount.</p>
 
           <div className="mt-4 space-y-3">
-            <input
-              value={vendorId}
-              onChange={(e) => setVendorId(e.target.value)}
-              placeholder="Vendor ObjectId"
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-            />
+            <div className="relative" ref={vendorDropdownRef}>
+              <div className="flex rounded-xl border border-border bg-background overflow-hidden">
+                <input
+                  value={selectedVendor ? displayVendorLabel(selectedVendor) : vendorSearch}
+                  onChange={(e) => {
+                    setVendorSearch(e.target.value);
+                    if (selectedVendor) setSelectedVendor(null);
+                  }}
+                  onFocus={() => setVendorDropdownOpen(true)}
+                  placeholder="Search vendor by business name..."
+                  className="flex-1 min-w-0 px-3 py-2 text-sm border-0 focus:ring-0 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVendorDropdownOpen((o) => !o)}
+                  className="px-2 text-muted hover:text-foreground border-l border-border"
+                  aria-label="Toggle list"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+              {vendorDropdownOpen && (
+                <div className="absolute z-10 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg max-h-56 overflow-y-auto">
+                  {loadingVendors ? (
+                    <div className="px-3 py-4 text-sm text-muted flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading vendors…
+                    </div>
+                  ) : filteredVendors.length === 0 ? (
+                    <div className="px-3 py-4 text-sm text-muted">No vendors found.</div>
+                  ) : (
+                    filteredVendors.map((v) => (
+                      <button
+                        key={v._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedVendor(v);
+                          setVendorSearch('');
+                          setVendorDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted/50 border-b border-border/60 last:border-0"
+                      >
+                        <span className="font-medium text-foreground">{displayVendorLabel(v)}</span>
+                        {v.email && (
+                          <span className="block text-xs text-muted truncate">{v.email}</span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
             <input
               type="number"
               min={0}
@@ -254,7 +371,7 @@ export default function AdminPaymentsPage() {
 
             <button
               onClick={createPayout}
-              disabled={creating || !vendorId.trim() || grossAmount <= 0}
+              disabled={creating || !selectedVendor || grossAmount <= 0}
               className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -329,6 +446,7 @@ export default function AdminPaymentsPage() {
                   <th className="px-5 py-3 text-left font-medium">Status</th>
                   <th className="px-5 py-3 text-left font-medium">Mode</th>
                   <th className="px-5 py-3 text-left font-medium">Paid on</th>
+                  <th className="px-5 py-3 text-left font-medium">Slip</th>
                   <th className="px-5 py-3 text-left font-medium">Action</th>
                 </tr>
               </thead>
@@ -349,6 +467,21 @@ export default function AdminPaymentsPage() {
                       <td className="px-5 py-4 text-muted">{p.paymentMode || 'bank'}</td>
                       <td className="px-5 py-4 text-muted">
                         {p.paidAt ? new Date(p.paidAt).toLocaleDateString() : '—'}
+                      </td>
+                      <td className="px-5 py-4">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadSlip(p._id)}
+                          disabled={downloadingSlipId === p._id}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-muted hover:text-foreground hover:border-foreground/40 transition disabled:opacity-50"
+                        >
+                          {downloadingSlipId === p._id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5" />
+                          )}
+                          PDF
+                        </button>
                       </td>
                       <td className="px-5 py-4">
                         {p.status !== 'paid' ? (

@@ -120,4 +120,33 @@ export const vendorListPayouts = (
   });
 };
 
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (envUrl) {
+    if (envUrl.startsWith('http://') || envUrl.startsWith('https://')) return envUrl.replace(/\/+$/, '');
+    return `http://${envUrl.replace(/^\/+/, '')}`;
+  }
+  return 'http://localhost:5000';
+};
+
+/** Download payout slip PDF (admin). Triggers browser download. */
+export async function downloadPayoutSlipPdf(payoutId: string, accessToken: string): Promise<void> {
+  const url = `${getApiBaseUrl()}/api/payments/admin/payouts/${payoutId}/slip`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error(res.status === 403 ? 'Admin access required' : 'Failed to download slip');
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition');
+  const filename = disposition?.match(/filename="?([^";]+)"?/)?.[1] ?? `payout-slip-${payoutId}.pdf`;
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(objectUrl);
+}
+
 
