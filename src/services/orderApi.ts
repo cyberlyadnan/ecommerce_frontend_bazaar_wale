@@ -2,6 +2,15 @@
 
 import { apiClient } from '@/lib/apiClient';
 
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (envUrl) {
+    if (envUrl.startsWith('http://') || envUrl.startsWith('https://')) return envUrl.replace(/\/+$/, '');
+    return `http://${envUrl.replace(/^\/+/, '')}`;
+  }
+  return 'http://localhost:5000';
+};
+
 export interface ShippingAddress {
   name: string;
   phone: string;
@@ -278,4 +287,48 @@ export const updateExpectedDeliveryDate = (
       accessToken,
     },
   );
+
+/**
+ * Download order invoice PDF (admin only). Triggers browser download.
+ */
+export async function downloadOrderInvoicePdf(orderId: string, accessToken: string): Promise<void> {
+  const url = `${getApiBaseUrl()}/api/orders/admin/${orderId}/invoice`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error(res.status === 403 ? 'Admin access required' : 'Failed to download invoice');
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition');
+  const filename = disposition?.match(/filename="?([^";]+)"?/)?.[1] ?? `invoice-${orderId}.pdf`;
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(objectUrl);
+}
+
+/**
+ * Download delivery label PDF (admin only). Triggers browser download.
+ */
+export async function downloadOrderDeliveryLabelPdf(orderId: string, accessToken: string): Promise<void> {
+  const url = `${getApiBaseUrl()}/api/orders/admin/${orderId}/delivery-label`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error(res.status === 403 ? 'Admin access required' : 'Failed to download label');
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition');
+  const filename = disposition?.match(/filename="?([^";]+)"?/)?.[1] ?? `delivery-label-${orderId}.pdf`;
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(objectUrl);
+}
 

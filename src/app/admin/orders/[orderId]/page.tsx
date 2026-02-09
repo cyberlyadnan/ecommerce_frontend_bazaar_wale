@@ -20,6 +20,8 @@ import {
   Edit2,
   Store,
   Building2,
+  FileText,
+  Tag,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -30,6 +32,8 @@ import {
   getAdminOrderById,
   updateOrderStatus,
   updateExpectedDeliveryDate,
+  downloadOrderInvoicePdf,
+  downloadOrderDeliveryLabelPdf,
   type Order,
 } from '@/services/orderApi';
 
@@ -145,6 +149,8 @@ export default function AdminOrderDetailPage() {
   const [editingDeliveryDate, setEditingDeliveryDate] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState('');
   const [updatingDeliveryDate, setUpdatingDeliveryDate] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [downloadingLabel, setDownloadingLabel] = useState(false);
 
   const orderId = params.orderId as string;
 
@@ -227,6 +233,34 @@ export default function AdminOrderDetailPage() {
       );
     } finally {
       setUpdatingDeliveryDate(false);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!accessToken || !orderId) return;
+    setDownloadingInvoice(true);
+    try {
+      await downloadOrderInvoicePdf(orderId, accessToken);
+      toast.success('Invoice downloaded');
+    } catch (err) {
+      console.error('Invoice download failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to download invoice');
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
+
+  const handleDownloadLabel = async () => {
+    if (!accessToken || !orderId) return;
+    setDownloadingLabel(true);
+    try {
+      await downloadOrderDeliveryLabelPdf(orderId, accessToken);
+      toast.success('Delivery label downloaded');
+    } catch (err) {
+      console.error('Label download failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to download label');
+    } finally {
+      setDownloadingLabel(false);
     }
   };
 
@@ -571,6 +605,45 @@ export default function AdminOrderDetailPage() {
                   {formatCurrency(order.total)}
                 </span>
               </div>
+            </div>
+
+            {/* Invoice & Delivery Label */}
+            <div className="border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Documents
+              </h3>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadInvoice}
+                  disabled={downloadingInvoice}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted/50 transition disabled:opacity-50"
+                >
+                  {downloadingInvoice ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4" />
+                  )}
+                  {downloadingInvoice ? 'Generating...' : 'Create order invoice (PDF)'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadLabel}
+                  disabled={downloadingLabel}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted/50 transition disabled:opacity-50"
+                >
+                  {downloadingLabel ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Tag className="w-4 h-4" />
+                  )}
+                  {downloadingLabel ? 'Generating...' : 'Print delivery label (PDF)'}
+                </button>
+              </div>
+              <p className="text-xs text-muted mt-2">
+                Invoice and label are in PDF format, ready to print.
+              </p>
             </div>
 
             {/* Payment Information */}
