@@ -4,6 +4,7 @@ import { ReactNode, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  BarChart3,
   Boxes,
   FileText,
   CreditCard,
@@ -33,6 +34,7 @@ interface AdminLayoutProps {
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin/dashboard', description: 'Overview and KPIs', icon: LayoutDashboard },
+  { label: 'Analytics', href: '/admin/analytics', description: 'Visits, views & sales insights', icon: BarChart3 },
   { label: 'Orders', href: '/admin/orders', description: 'Order management', icon: ShoppingBag },
   { label: 'Products', href: '/admin/products', description: 'Catalogue oversight', icon: Boxes },
   { label: 'Categories', href: '/admin/categories', description: 'Manage taxonomy', icon: FolderTree },

@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 
+import { recordAnalyticsEvent } from '@/services/analyticsApi';
+import { getVisitorId, getSessionId } from '@/lib/analyticsVisitor';
 import { addToBrowseHistory } from '@/utils/browseHistory';
 
 type RecordProductViewProps = {
@@ -23,7 +25,7 @@ export function RecordProductView({ product }: RecordProductViewProps) {
       typeof product.vendor === 'string'
         ? product.vendor
         : product.vendor && typeof product.vendor === 'object'
-          ? (product.vendor as any).name
+          ? (product.vendor as { name?: string }).name
           : undefined;
 
     addToBrowseHistory({
@@ -33,6 +35,15 @@ export function RecordProductView({ product }: RecordProductViewProps) {
       price: typeof product.price === 'number' ? product.price : undefined,
       image: product.images?.[0]?.url,
       vendor: vendorName,
+    });
+
+    recordAnalyticsEvent({
+      type: 'product_view',
+      productId: product._id,
+      path: `/products/${product.slug}`,
+      title: product.title,
+      visitorId: getVisitorId(),
+      sessionId: getSessionId(),
     });
   }, [product]);
 
