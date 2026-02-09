@@ -132,11 +132,32 @@ export default function VendorDashboardPage() {
       ]
     : [];
 
-  const settlements = [
-    { title: 'Next payout', amount: 'Coming soon', subtext: 'Payment system in development' },
-    { title: 'Pending adjustments', amount: '₹0', subtext: 'No pending adjustments' },
-    { title: 'Refund reserve', amount: '₹0', subtext: 'No refunds pending' },
-  ];
+  const settlements = stats?.payouts
+    ? [
+        {
+          title: 'Next payout',
+          amount: stats.payouts.nextPayoutFormatted,
+          subtext:
+            stats.payouts.pendingCount > 0
+              ? `${stats.payouts.pendingCount} payout(s) pending`
+              : 'No pending payouts',
+        },
+        {
+          title: 'Pending count',
+          amount: String(stats.payouts.pendingCount),
+          subtext: 'Awaiting processing by admin',
+        },
+        {
+          title: 'Total paid out',
+          amount: stats.payouts.paidTotalFormatted,
+          subtext: 'Lifetime payouts received',
+        },
+      ]
+    : [
+        { title: 'Next payout', amount: '—', subtext: 'Loading…' },
+        { title: 'Pending count', amount: '—', subtext: '—' },
+        { title: 'Total paid out', amount: '—', subtext: '—' },
+      ];
 
   if (loading) {
     return (

@@ -21,6 +21,13 @@ export interface VendorDashboardStats {
     awaitingPickup: number;
     delayedDispatch: number;
   };
+  payouts?: {
+    nextPayoutFormatted: string;
+    nextPayoutAmount: number;
+    pendingCount: number;
+    paidTotalFormatted: string;
+    paidTotal: number;
+  };
 }
 
 export interface VendorDashboardStatsResponse {
