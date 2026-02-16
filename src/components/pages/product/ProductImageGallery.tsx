@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { resolveProductImage } from '@/utils/currency';
 
@@ -86,13 +85,10 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
         onTouchEnd={onTouchEnd}
       >
         {currentImage && (
-          <Image
+          <img
             src={resolveProductImage(currentImage.url)}
             alt={currentImage.alt || productTitle}
-            fill
-            className="object-cover transition-opacity duration-300"
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            priority={currentIndex === 0}
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
           />
         )}
 
@@ -141,11 +137,9 @@ export function ProductImageGallery({ images, productTitle }: ProductImageGaller
               }`}
               aria-label={`View image ${idx + 1}`}
             >
-              <Image
+              <img
                 src={resolveProductImage(img.url)}
                 alt={img.alt || `${productTitle} - Image ${idx + 1}`}
-                width={80}
-                height={80}
                 className="h-full w-full object-cover"
               />
             </button>
