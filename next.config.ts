@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
     ],
     // Disable image optimization for localhost in development to avoid 400 errors
     // Images will be served directly without optimization
-    unoptimized: process.env.NODE_ENV === 'development',
+    unoptimized: true,
   },
 };
 
