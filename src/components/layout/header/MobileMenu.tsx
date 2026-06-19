@@ -24,6 +24,11 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
   const router = useRouter();
   const cartItems = useAppSelector((state) => state.cart.items);
   const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '919000000000';
+  const whatsappMessage = 'Hello, I am interested in wholesale orders.';
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
+    whatsappMessage,
+  )}`;
 
   useEffect(() => {
     setMounted(true);
@@ -217,6 +222,19 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
                   ))}
 
                   {/* Become a Vendor Button */}
+                  {/* For Wholesale - WhatsApp */}
+                  <li className="mt-2">
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all duration-300 shadow-md hover:shadow-lg touch-manipulation"
+                      onClick={toggleSidebar}
+                    >
+                      <span>For Wholesale</span>
+                    </a>
+                  </li>
+
                   {showBecomeVendor && (
                     <li className="mt-2">
                       <Link

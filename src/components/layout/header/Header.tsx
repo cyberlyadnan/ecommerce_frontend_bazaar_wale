@@ -19,6 +19,11 @@ const navLinks = [
 export async function Header() {
   const { user } = await getCurrentUser();
   const showBecomeVendor = !user || user.role !== 'vendor';
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '919000000000';
+  const whatsappMessage = 'Hello, I am interested in wholesale orders.';
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
+    whatsappMessage,
+  )}`;
 
   return (
     <header className="w-full">
@@ -153,14 +158,25 @@ export async function Header() {
             
             {/* Become a Vendor Button */}
             {showBecomeVendor && (
-              <Link
-                href="/auth/register/vendor"
-                className="shrink-0 z-10 inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 rounded-lg border border-white/25 text-white font-semibold text-sm whitespace-nowrap bg-white/10 hover:bg-white/15 hover:border-white/40 transition-all duration-300 shadow-sm hover:shadow-md"
-              >
-                {/* <Sparkles className="w-4 h-4 text-secondary" /> */}
-                <span className="hidden lg:inline">Become a Vendor</span>
-                <span className="lg:hidden">Vendor</span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 z-10 inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold text-sm whitespace-nowrap hover:bg-emerald-700 transition-all duration-300 shadow-sm hover:shadow-md"
+                >
+                  <span className="hidden lg:inline">For Wholesale</span>
+                  <span className="lg:hidden">Wholesale</span>
+                </a>
+
+                <Link
+                  href="/auth/register/vendor"
+                  className="shrink-0 z-10 inline-flex items-center gap-2 px-3 lg:px-4 py-1.5 rounded-lg border border-white/25 text-white font-semibold text-sm whitespace-nowrap bg-white/10 hover:bg-white/15 hover:border-white/40 transition-all duration-300 shadow-sm hover:shadow-md"
+                >
+                  <span className="hidden lg:inline">Become a Vendor</span>
+                  <span className="lg:hidden">Vendor</span>
+                </Link>
+              </div>
             )}
           </div>
         </div>
