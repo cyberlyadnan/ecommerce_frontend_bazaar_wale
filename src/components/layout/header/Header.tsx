@@ -19,11 +19,9 @@ const navLinks = [
 export async function Header() {
   const { user } = await getCurrentUser();
   const showBecomeVendor = !user || user.role !== 'vendor';
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '919000000000';
+  const whatsappNumber = '919125842411';
   const whatsappMessage = 'Hello, I am interested in wholesale orders.';
-  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(
-    whatsappMessage,
-  )}`;
+  const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <header className="w-full">
