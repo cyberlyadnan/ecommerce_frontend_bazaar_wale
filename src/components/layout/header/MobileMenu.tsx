@@ -8,6 +8,7 @@ import { Menu, X, ChevronRight, Sparkles, Search, ShoppingCart } from 'lucide-re
 import { useRouter } from 'next/navigation';
 
 import { AuthUser } from '@/types/auth';
+import { getWholesaleWhatsAppHref } from '@/lib/whatsapp';
 import { useAppSelector } from '@/store/redux/store';
 
 interface MobileMenuProps {
@@ -24,9 +25,7 @@ export function MobileMenu({ navLinks, user, showBecomeVendor }: MobileMenuProps
   const router = useRouter();
   const cartItems = useAppSelector((state) => state.cart.items);
   const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const whatsappNumber = '919125842411';
-  const whatsappMessage = 'Hello, I am interested in wholesale orders.';
-  const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappHref = getWholesaleWhatsAppHref();
 
   useEffect(() => {
     setMounted(true);

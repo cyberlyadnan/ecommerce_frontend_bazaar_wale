@@ -239,6 +239,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 minOrderQty={product.minOrderQty || 1}
                 stock={product.stock || 0}
                 isActive={product.isActive}
+                productTitle={product.title}
               />
             </div>
 

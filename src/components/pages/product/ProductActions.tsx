@@ -11,6 +11,7 @@ interface ProductActionsProps {
   minOrderQty: number;
   stock: number;
   isActive: boolean;
+  productTitle?: string;
   showTopActions?: boolean; // If true, only show favorite/share buttons
 }
 
@@ -19,6 +20,7 @@ export function ProductActions({
   minOrderQty, 
   stock, 
   isActive,
+  productTitle,
   showTopActions = false 
 }: ProductActionsProps) {
   const [shareMessage, setShareMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -90,6 +92,7 @@ export function ProductActions({
           minOrderQty={minOrderQty}
           stock={stock}
           isActive={isActive}
+          productTitle={productTitle}
           className="w-full"
         />
       </div>

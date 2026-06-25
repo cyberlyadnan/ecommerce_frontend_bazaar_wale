@@ -8,6 +8,7 @@ import { useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart } from 'lucide-react';
 
+import { WholesaleButton } from '@/components/shared/WholesaleButton';
 import { addToCartApi } from '@/services/cartApi';
 import { setCartItems } from '@/store/redux/slices/cartSlice';
 import { useAppDispatch, useAppSelector } from '@/store/redux/store';
@@ -19,6 +20,7 @@ interface AddToCartButtonProps {
   stock: number;
   isActive: boolean;
   className?: string;
+  productTitle?: string;
 }
 
 export function AddToCartButton({
@@ -27,6 +29,7 @@ export function AddToCartButton({
   stock,
   isActive,
   className = '',
+  productTitle,
 }: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(minOrderQty);
   const [isLoading, setIsLoading] = useState(false);
@@ -158,6 +161,8 @@ export function AddToCartButton({
             </>
           )}
         </button>
+
+        {productTitle && <WholesaleButton productTitle={productTitle} compact />}
       </div>
     </div>
   );

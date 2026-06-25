@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Search, Sparkles } from 'lucide-react';
 
 import { getCurrentUser } from '@/lib/server/auth';
+import { getWholesaleWhatsAppHref } from '@/lib/whatsapp';
 import { MobileMenu } from './MobileMenu';
 import { UserMenu } from './UserMenu';
 import { CartIcon } from './CartIcon';
@@ -19,9 +20,7 @@ const navLinks = [
 export async function Header() {
   const { user } = await getCurrentUser();
   const showBecomeVendor = !user || user.role !== 'vendor';
-  const whatsappNumber = '919125842411';
-  const whatsappMessage = 'Hello, I am interested in wholesale orders.';
-  const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappHref = getWholesaleWhatsAppHref();
 
   return (
     <header className="w-full">
